@@ -1,0 +1,729 @@
+{
+    "project_root": "C:\\Users\\Micael\\Desktop\\syncWave\\djangoapp",
+    "files": [
+        {
+            "path": "manage.py",
+            "hash": "9b1525fa54c1d3dfe0cbaeaf46828a3f",
+            "type": "python",
+            "classes": [],
+            "functions": [
+                {
+                    "name": "main",
+                    "args": [],
+                    "docstring": "Run administrative tasks.",
+                    "body": [
+                        "'Run administrative tasks.'",
+                        "os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')",
+                        "try:\n    from django.core.management import execute_from_command_line\nexcept ImportError as exc:\n    raise ImportError(\"Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a virtual environment?\") from exc",
+                        "execute_from_command_line(sys.argv)"
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "requirements.txt",
+            "hash": "6964f31387e8de8d98f940d7a5ca617b",
+            "type": "other"
+        },
+        {
+            "path": "accounts\\admin.py",
+            "hash": "3ee339a59d8aea7a1516349d8204100d",
+            "type": "python",
+            "classes": [
+                {
+                    "name": "CustomUserCreationForm",
+                    "fields": [
+                        {
+                            "name": "first_name",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 150,
+                                "required": true,
+                                "label": "Nome"
+                            }
+                        },
+                        {
+                            "name": "last_name",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 150,
+                                "required": true,
+                                "label": "Sobrenome"
+                            }
+                        },
+                        {
+                            "name": "email",
+                            "type": "EmailField",
+                            "args": {
+                                "required": true,
+                                "label": "E-mail"
+                            }
+                        },
+                        {
+                            "name": "company",
+                            "type": "ModelChoiceField",
+                            "args": {
+                                "queryset": "Call(func=Attribute(value=Attribute(value=Name(id='Company', ctx=Load()), attr='objects', ctx=Load()), attr='filter', ctx=Load()), keywords=[keyword(arg='is_active', value=Constant(value=True))])",
+                                "required": true,
+                                "label": "Empresa",
+                                "help_text": "Selecione a empresa à qual o usuário pertencerá"
+                            }
+                        },
+                        {
+                            "name": "role",
+                            "type": "ChoiceField",
+                            "args": {
+                                "choices": "Attribute(value=Name(id='CustomUser', ctx=Load()), attr='USER_ROLES', ctx=Load())",
+                                "required": true,
+                                "initial": "employee",
+                                "label": "Cargo/Função"
+                            }
+                        },
+                        {
+                            "name": "department",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 100,
+                                "required": false,
+                                "label": "Departamento",
+                                "help_text": "Ex: Vendas, Financeiro, TI, etc."
+                            }
+                        },
+                        {
+                            "name": "phone",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 20,
+                                "required": false,
+                                "label": "Telefone",
+                                "help_text": "Ex: (48) 99999-9999"
+                            }
+                        },
+                        {
+                            "name": "is_staff",
+                            "type": "BooleanField",
+                            "args": {
+                                "required": false,
+                                "label": "Acesso à administração",
+                                "help_text": "Permite que o usuário acesse o painel administrativo"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "CustomUserChangeForm",
+                    "fields": []
+                },
+                {
+                    "name": "CompanyAdmin",
+                    "fields": [
+                        {
+                            "name": "list_display",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "list_filter",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "search_fields",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "prepopulated_fields",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "readonly_fields",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "fieldsets",
+                            "type": null,
+                            "args": {}
+                        }
+                    ]
+                },
+                {
+                    "name": "CustomUserAdmin",
+                    "fields": [
+                        {
+                            "name": "form",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "add_form",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "list_display",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "list_display_links",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "list_filter",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "search_fields",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "ordering",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "list_per_page",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "fieldsets",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "add_fieldsets",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "readonly_fields",
+                            "type": null,
+                            "args": {}
+                        }
+                    ]
+                },
+                {
+                    "name": "CompanyPermissionAdmin",
+                    "fields": [
+                        {
+                            "name": "list_display",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "list_filter",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "search_fields",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "readonly_fields",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "fieldsets",
+                            "type": null,
+                            "args": {}
+                        }
+                    ]
+                }
+            ],
+            "functions": []
+        },
+        {
+            "path": "accounts\\apps.py",
+            "hash": "25134a3eb411e60820d581af5d96fa2c",
+            "type": "python",
+            "classes": [
+                {
+                    "name": "AccountsConfig",
+                    "fields": [
+                        {
+                            "name": "default_auto_field",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "name",
+                            "type": null,
+                            "args": {}
+                        }
+                    ]
+                }
+            ],
+            "functions": []
+        },
+        {
+            "path": "accounts\\context_processors.py",
+            "hash": "275f677e8e6a06dc65ed21b6b7574f6c",
+            "type": "python",
+            "classes": [],
+            "functions": [
+                {
+                    "name": "company_context",
+                    "args": [
+                        "request"
+                    ],
+                    "docstring": "Context processor para disponibilizar informações da empresa nos templates",
+                    "body": [
+                        "'\\n    Context processor para disponibilizar informações da empresa nos templates\\n    '",
+                        "context = {'current_company': getattr(request, 'current_company', None), 'is_master_request': getattr(request, 'is_master_request', False)}",
+                        "if request.user.is_authenticated and hasattr(request.user, 'company'):\n    context.update({'user_company': request.user.company, 'is_master_user': request.user.is_master_user(), 'accessible_companies': request.user.get_accessible_companies()})",
+                        "return context"
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "accounts\\decorators.py",
+            "hash": "422a4e02546d013d37b0627d517c180f",
+            "type": "python",
+            "classes": [],
+            "functions": [
+                {
+                    "name": "company_required",
+                    "args": [
+                        "view_func"
+                    ],
+                    "docstring": "Decorator que garante que o usuário pertence a uma empresa ativa",
+                    "body": [
+                        "'\\n    Decorator que garante que o usuário pertence a uma empresa ativa\\n    '",
+                        "@wraps(view_func)\ndef _wrapped_view(request, *args, **kwargs):\n    if not hasattr(request.user, 'company') or not request.user.company.is_active:\n        raise PermissionDenied('Usuário deve pertencer a uma empresa ativa.')\n    return view_func(request, *args, **kwargs)",
+                        "return _wrapped_view"
+                    ]
+                },
+                {
+                    "name": "master_company_required",
+                    "args": [
+                        "view_func"
+                    ],
+                    "docstring": "Decorator que permite acesso apenas para usuários da empresa master",
+                    "body": [
+                        "'\\n    Decorator que permite acesso apenas para usuários da empresa master\\n    '",
+                        "@wraps(view_func)\ndef _wrapped_view(request, *args, **kwargs):\n    if not request.user.is_authenticated:\n        raise PermissionDenied('Usuário deve estar autenticado.')\n    if not request.user.is_master_user():\n        raise PermissionDenied('Acesso restrito à empresa master.')\n    return view_func(request, *args, **kwargs)",
+                        "return _wrapped_view"
+                    ]
+                },
+                {
+                    "name": "company_access_required",
+                    "args": [
+                        "company_slug"
+                    ],
+                    "docstring": "Decorator que verifica se o usuário pode acessar uma empresa específica",
+                    "body": [
+                        "'\\n    Decorator que verifica se o usuário pode acessar uma empresa específica\\n    '",
+                        "def decorator(view_func):\n\n    @wraps(view_func)\n    def _wrapped_view(request, *args, **kwargs):\n        if not request.user.is_authenticated:\n            raise PermissionDenied('Usuário deve estar autenticado.')\n        try:\n            company = Company.objects.get(slug=company_slug, is_active=True)\n            if not request.user.can_access_company(company):\n                raise PermissionDenied(f'Acesso negado à empresa {company.name}.')\n            request.target_company = company\n            return view_func(request, *args, **kwargs)\n        except Company.DoesNotExist:\n            raise Http404('Empresa não encontrada.')\n    return _wrapped_view",
+                        "return decorator"
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "accounts\\models.py",
+            "hash": "e9f0926b7e03391e225f86d1c562e270",
+            "type": "python",
+            "classes": [
+                {
+                    "name": "Company",
+                    "fields": [
+                        {
+                            "name": "COMPANY_TYPES",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "id",
+                            "type": "UUIDField",
+                            "args": {
+                                "primary_key": true,
+                                "default": "Attribute(value=Name(id='uuid', ctx=Load()), attr='uuid4', ctx=Load())",
+                                "editable": false
+                            }
+                        },
+                        {
+                            "name": "name",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 255,
+                                "verbose_name": "Nome da Empresa"
+                            }
+                        },
+                        {
+                            "name": "slug",
+                            "type": "SlugField",
+                            "args": {
+                                "max_length": 100,
+                                "unique": true,
+                                "verbose_name": "Slug"
+                            }
+                        },
+                        {
+                            "name": "cnpj",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 18,
+                                "unique": true,
+                                "null": true,
+                                "blank": true,
+                                "verbose_name": "CNPJ"
+                            }
+                        },
+                        {
+                            "name": "email",
+                            "type": "EmailField",
+                            "args": {
+                                "verbose_name": "E-mail da Empresa"
+                            }
+                        },
+                        {
+                            "name": "phone",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 20,
+                                "null": true,
+                                "blank": true,
+                                "verbose_name": "Telefone"
+                            }
+                        },
+                        {
+                            "name": "address",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 255,
+                                "null": true,
+                                "blank": true,
+                                "verbose_name": "Endereço"
+                            }
+                        },
+                        {
+                            "name": "city",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 100,
+                                "null": true,
+                                "blank": true,
+                                "verbose_name": "Cidade"
+                            }
+                        },
+                        {
+                            "name": "state",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 100,
+                                "null": true,
+                                "blank": true,
+                                "verbose_name": "Estado"
+                            }
+                        },
+                        {
+                            "name": "zip_code",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 10,
+                                "null": true,
+                                "blank": true,
+                                "verbose_name": "CEP"
+                            }
+                        },
+                        {
+                            "name": "company_type",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 20,
+                                "choices": "Name(id='COMPANY_TYPES', ctx=Load())",
+                                "default": "client",
+                                "verbose_name": "Tipo da Empresa"
+                            }
+                        },
+                        {
+                            "name": "is_active",
+                            "type": "BooleanField",
+                            "args": {
+                                "default": true,
+                                "verbose_name": "Ativo"
+                            }
+                        },
+                        {
+                            "name": "created_at",
+                            "type": "DateTimeField",
+                            "args": {
+                                "auto_now_add": true,
+                                "verbose_name": "Criado em"
+                            }
+                        },
+                        {
+                            "name": "updated_at",
+                            "type": "DateTimeField",
+                            "args": {
+                                "auto_now": true,
+                                "verbose_name": "Atualizado em"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "CustomUser",
+                    "fields": [
+                        {
+                            "name": "USER_ROLES",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "id",
+                            "type": "UUIDField",
+                            "args": {
+                                "primary_key": true,
+                                "default": "Attribute(value=Name(id='uuid', ctx=Load()), attr='uuid4', ctx=Load())",
+                                "editable": false
+                            }
+                        },
+                        {
+                            "name": "company",
+                            "type": "ForeignKey",
+                            "args": {
+                                "on_delete": "Attribute(value=Name(id='models', ctx=Load()), attr='CASCADE', ctx=Load())",
+                                "related_name": "users",
+                                "verbose_name": "Empresa"
+                            }
+                        },
+                        {
+                            "name": "role",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 20,
+                                "choices": "Name(id='USER_ROLES', ctx=Load())",
+                                "default": "employee",
+                                "verbose_name": "Cargo/Função"
+                            }
+                        },
+                        {
+                            "name": "phone",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 20,
+                                "null": true,
+                                "blank": true,
+                                "verbose_name": "Telefone"
+                            }
+                        },
+                        {
+                            "name": "department",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 100,
+                                "null": true,
+                                "blank": true,
+                                "verbose_name": "Departamento"
+                            }
+                        },
+                        {
+                            "name": "can_access_all_companies",
+                            "type": "BooleanField",
+                            "args": {
+                                "default": false,
+                                "verbose_name": "Pode acessar todas as empresas"
+                            }
+                        },
+                        {
+                            "name": "created_at",
+                            "type": "DateTimeField",
+                            "args": {
+                                "auto_now_add": true,
+                                "verbose_name": "Criado em"
+                            }
+                        },
+                        {
+                            "name": "updated_at",
+                            "type": "DateTimeField",
+                            "args": {
+                                "auto_now": true,
+                                "verbose_name": "Atualizado em"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "CompanyPermission",
+                    "fields": [
+                        {
+                            "name": "company_owner",
+                            "type": "ForeignKey",
+                            "args": {
+                                "on_delete": "Attribute(value=Name(id='models', ctx=Load()), attr='CASCADE', ctx=Load())",
+                                "related_name": "permissions_granted",
+                                "verbose_name": "Empresa Proprietária"
+                            }
+                        },
+                        {
+                            "name": "company_granted",
+                            "type": "ForeignKey",
+                            "args": {
+                                "on_delete": "Attribute(value=Name(id='models', ctx=Load()), attr='CASCADE', ctx=Load())",
+                                "related_name": "permissions_received",
+                                "verbose_name": "Empresa com Acesso"
+                            }
+                        },
+                        {
+                            "name": "permission_type",
+                            "type": "CharField",
+                            "args": {
+                                "max_length": 50,
+                                "verbose_name": "Tipo de Permissão",
+                                "help_text": "Ex: read, write, admin"
+                            }
+                        },
+                        {
+                            "name": "is_active",
+                            "type": "BooleanField",
+                            "args": {
+                                "default": true,
+                                "verbose_name": "Ativo"
+                            }
+                        },
+                        {
+                            "name": "created_at",
+                            "type": "DateTimeField",
+                            "args": {
+                                "auto_now_add": true,
+                                "verbose_name": "Criado em"
+                            }
+                        },
+                        {
+                            "name": "created_by",
+                            "type": "ForeignKey",
+                            "args": {
+                                "on_delete": "Attribute(value=Name(id='models', ctx=Load()), attr='CASCADE', ctx=Load())",
+                                "verbose_name": "Criado por"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "functions": []
+        },
+        {
+            "path": "accounts\\tests.py",
+            "hash": "465b7e9f69bfd158c850cdfbc7306818",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        },
+        {
+            "path": "accounts\\utils.py",
+            "hash": "85fc9ded3a3e50049f81740eb5239596",
+            "type": "python",
+            "classes": [
+                {
+                    "name": "CompanyQuerySet",
+                    "fields": []
+                },
+                {
+                    "name": "CompanyManager",
+                    "fields": []
+                }
+            ],
+            "functions": []
+        },
+        {
+            "path": "accounts\\views.py",
+            "hash": "f467fa232324ad139aaecd0df7698f3f",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        },
+        {
+            "path": "accounts\\__init__.py",
+            "hash": "d41d8cd98f00b204e9800998ecf8427e",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        },
+        {
+            "path": "accounts\\management\\commands\\create_master_company.py",
+            "hash": "1924ea1431080f934936734618ada534",
+            "type": "python",
+            "classes": [
+                {
+                    "name": "Command",
+                    "fields": [
+                        {
+                            "name": "help",
+                            "type": null,
+                            "args": {}
+                        }
+                    ]
+                }
+            ],
+            "functions": []
+        },
+        {
+            "path": "accounts\\management\\commands\\list_companies.py",
+            "hash": "840aec467a3391b8ee4faad0d6c85f4e",
+            "type": "python",
+            "classes": [
+                {
+                    "name": "Command",
+                    "fields": [
+                        {
+                            "name": "help",
+                            "type": null,
+                            "args": {}
+                        }
+                    ]
+                }
+            ],
+            "functions": []
+        },
+        {
+            "path": "project\\asgi.py",
+            "hash": "5715720c6a37daf83cbca622dcf07aa2",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        },
+        {
+            "path": "project\\settings.py",
+            "hash": "c80d1b7945a72dab2ed28d5813740780",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        },
+        {
+            "path": "project\\urls.py",
+            "hash": "a040a8c926edcf6e26303c73a3c119a5",
+            "type": "python",
+            "classes": [],
+            "functions": [],
+            "urls": [
+                "path('admin/', admin.site.urls),"
+            ]
+        },
+        {
+            "path": "project\\wsgi.py",
+            "hash": "7b8601b4c22431f8974e822722dfcf4d",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        },
+        {
+            "path": "project\\__init__.py",
+            "hash": "d41d8cd98f00b204e9800998ecf8427e",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        }
+    ]
+}
