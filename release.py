@@ -90,7 +90,7 @@ def main():
     print("\n🚀 Versão publicada com sucesso!")
 
     # Chama o llm.py
-    llm_path = os.path.join(os.path.dirname(__file__), "llm.py")
+    llm_path = os.path.join(os.path.dirname(__file__), "crm/llm.py")
     print("\n🔗 Chamando llm.py...")
     subprocess.run([sys.executable, llm_path])
 
