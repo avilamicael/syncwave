@@ -571,24 +571,24 @@ function updateStats() {
         });
 }
 
-// Função para mostrar alerts
-function showAlert(type, message) {
-    const alert = `
-        <div class="alert alert-${type} alert-dismissible fade show position-fixed" 
-             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-            ${message}
-        </div>
-    `;
-    $('body').append(alert);
-    
-    // Auto dismiss after 3 seconds
-    setTimeout(function() {
-        $('.alert').fadeOut();
-    }, 3000);
-}
+    // // Função para mostrar alerts
+    // function showAlert(type, message) {
+    //     const alert = `
+    //         <div class="alert alert-${type} alert-dismissible fade show position-fixed" 
+    //              style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+    //             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    //                 <span aria-hidden="true">&times;</span>
+    //             </button>
+    //             ${message}
+    //         </div>
+    //     `;
+    //     $('body').append(alert);
+        
+    //     // Auto dismiss after 3 seconds
+    //     setTimeout(function() {
+    //         $('.alert').fadeOut();
+    //     }, 3000);
+    // }
 
 // Função para inicializar preview da tag
 function initializeTagPreview() {

@@ -7,7 +7,8 @@ crm/data/
 chat/data/
 *.md
 *.old
-
+crm/informacoes_sistema.json
+llm.py
 
 # Django #
 *.log
