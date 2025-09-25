@@ -11,8 +11,9 @@ from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from .models import Tag, Contact
-from .forms import TagForm, ContactForm, ContactImportForm
+from django.utils import timezone
+from .models import Tag, Contact, Campaign, Message, MessageLog
+from .forms import TagForm, ContactForm, ContactImportForm, CampaignForm, MessageForm
 from accounts.mixins import CompanyRequiredMixin
 
 class DashboardView(CompanyRequiredMixin, TemplateView):
@@ -26,7 +27,11 @@ class DashboardView(CompanyRequiredMixin, TemplateView):
             'total_contatos': Contact.objects.filter(company=company).count(),
             'contatos_ativos': Contact.objects.filter(company=company, ativo=True).count(),
             'total_tags': Tag.objects.filter(company=company).count(),
+            'total_campanhas': Campaign.objects.filter(company=company).count(),
+            'total_mensagens': Message.objects.filter(company=company).count(),
             'contatos_recentes': Contact.objects.filter(company=company).prefetch_related('tags').order_by('-created_at')[:5],
+            'campanhas_recentes': Campaign.objects.filter(company=company).order_by('-created_at')[:5],
+            'mensagens_recentes': Message.objects.filter(company=company).select_related('campanha').order_by('-created_at')[:5],
         })
         return context
 
@@ -559,6 +564,364 @@ class AjaxStatsView(CompanyRequiredMixin, View):
             'total_contatos': Contact.objects.filter(company=company).count(),
             'contatos_ativos': Contact.objects.filter(company=company, ativo=True).count(),
             'total_tags': Tag.objects.filter(company=company).count(),
+            'total_campanhas': Campaign.objects.filter(company=company).count(),
+            'total_mensagens': Message.objects.filter(company=company).count(),
         }
         
         return JsonResponse(stats)
+
+
+class AjaxCampaignPreviewView(CompanyRequiredMixin, View):
+    """View para buscar texto da campanha via AJAX para prévia"""
+    def get(self, request):
+        campanha_id = request.GET.get('campanha_id')
+        
+        if not campanha_id:
+            return JsonResponse({'success': False, 'message': 'ID da campanha não fornecido'})
+        
+        try:
+            campanha = Campaign.objects.get(
+                pk=campanha_id,
+                company=request.user.company
+            )
+            
+            # Processa texto com exemplo de contato
+            texto_processado = campanha.texto.replace('{{nome}}', 'João Silva')
+            
+            return JsonResponse({
+                'success': True,
+                'texto': texto_processado,
+                'nome_campanha': campanha.nome
+            })
+            
+        except Campaign.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Campanha não encontrada'
+            })
+
+
+# =============================================================================
+# CAMPAIGN VIEWS
+# =============================================================================
+
+class CampaignListView(CompanyRequiredMixin, ListView):
+    model = Campaign
+    template_name = 'wpp/campaigns/list.html'
+    context_object_name = 'campanhas'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        queryset = super().get_queryset().annotate(
+            total_envios=Count('envios')
+        )
+        
+        # Busca
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(nome__icontains=search)
+        
+        # Filtro por status
+        status = self.request.GET.get('status')
+        if status == 'ativo':
+            queryset = queryset.filter(ativo=True)
+        elif status == 'inativo':
+            queryset = queryset.filter(ativo=False)
+        
+        return queryset.order_by('-created_at')
+
+
+class CampaignDetailView(CompanyRequiredMixin, DetailView):
+    model = Campaign
+    template_name = 'wpp/campaigns/detail.html'
+    context_object_name = 'campanha'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        campanha = self.get_object()
+        
+        # Pega alguns contatos para prévia
+        contatos_exemplo = Contact.objects.filter(
+            company=self.request.user.company, 
+            ativo=True
+        )[:3]
+        
+        context.update({
+            'contatos_exemplo': contatos_exemplo,
+            'total_envios': campanha.envios.count(),
+            'envios_recentes': campanha.envios.order_by('-created_at')[:5],
+        })
+        return context
+
+
+class CampaignCreateView(CompanyRequiredMixin, CreateView):
+    model = Campaign
+    form_class = CampaignForm
+    template_name = 'wpp/campaigns/form.html'
+    success_url = reverse_lazy('wpp:campaign_list')
+    
+    def form_valid(self, form):
+        form.instance.company = self.request.user.company
+        form.instance.created_by = self.request.user
+        messages.success(self.request, 'Campanha criada com sucesso!')
+        return super().form_valid(form)
+
+
+class CampaignUpdateView(CompanyRequiredMixin, UpdateView):
+    model = Campaign
+    form_class = CampaignForm
+    template_name = 'wpp/campaigns/form.html'
+    success_url = reverse_lazy('wpp:campaign_list')
+    
+    def form_valid(self, form):
+        # Atualiza o updated_at para registrar a alteração
+        form.instance.updated_at = timezone.now()
+        messages.success(self.request, 'Campanha atualizada com sucesso!')
+        return super().form_valid(form)
+
+
+class CampaignDeleteView(CompanyRequiredMixin, DeleteView):
+    model = Campaign
+    template_name = 'wpp/campaigns/confirm_delete.html'
+    success_url = reverse_lazy('wpp:campaign_list')
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Campanha deletada com sucesso!')
+        return super().delete(request, *args, **kwargs)
+
+
+# =============================================================================
+# MESSAGE VIEWS
+# =============================================================================
+
+class MessageListView(CompanyRequiredMixin, ListView):
+    model = Message
+    template_name = 'wpp/messages/list.html'
+    context_object_name = 'mensagens'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related('campanha')
+        
+        # Filtros
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(nome__icontains=search) | 
+                Q(campanha__nome__icontains=search)
+            )
+        
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        
+        campanha = self.request.GET.get('campanha')
+        if campanha:
+            queryset = queryset.filter(campanha__id=campanha)
+        
+        return queryset.order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['campanhas'] = Campaign.objects.filter(
+            company=self.request.user.company, 
+            ativo=True
+        )
+        return context
+
+
+class MessageDetailView(CompanyRequiredMixin, DetailView):
+    model = Message
+    template_name = 'wpp/messages/detail.html'
+    context_object_name = 'mensagem'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        mensagem = self.get_object()
+        
+        # Logs de envio
+        context['logs'] = mensagem.logs.select_related('contato').order_by('-created_at')[:50]
+        
+        return context
+
+
+class MessageCreateView(CompanyRequiredMixin, CreateView):
+    model = Message
+    form_class = MessageForm
+    template_name = 'wpp/messages/form.html'
+    success_url = reverse_lazy('wpp:message_list')
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['company'] = self.request.user.company
+        return kwargs
+    
+    def form_valid(self, form):
+        form.instance.company = self.request.user.company
+        form.instance.created_by = self.request.user
+        
+        # Salva a mensagem primeiro
+        response = super().form_valid(form)
+        
+        # Atualiza o total de contatos
+        self.object.total_contatos = self.object.contatos.count()
+        self.object.save(update_fields=['total_contatos'])
+        
+        messages.success(self.request, 'Mensagem criada com sucesso!')
+        return response
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Adiciona contatos para seleção
+        context['contatos_disponiveis'] = Contact.objects.filter(
+            company=self.request.user.company,
+            ativo=True
+        ).order_by('nome')
+        
+        return context
+
+
+class MessageUpdateView(CompanyRequiredMixin, UpdateView):
+    model = Message
+    form_class = MessageForm
+    template_name = 'wpp/messages/form.html'
+    success_url = reverse_lazy('wpp:message_list')
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['company'] = self.request.user.company
+        return kwargs
+    
+    def form_valid(self, form):
+        # Só permite editar se não foi enviada
+        if self.object.status in ['enviando', 'enviada']:
+            messages.error(self.request, 'Não é possível editar mensagem já enviada.')
+            return redirect('wpp:message_detail', pk=self.object.pk)
+        
+        # Atualiza o total de contatos
+        response = super().form_valid(form)
+        self.object.total_contatos = self.object.contatos.count()
+        
+        # Atualiza o updated_at para registrar a alteração
+        self.object.updated_at = timezone.now()
+        self.object.save(update_fields=['total_contatos', 'updated_at'])
+        
+        messages.success(self.request, 'Mensagem atualizada com sucesso!')
+        return response
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Adiciona contatos para seleção
+        context['contatos_disponiveis'] = Contact.objects.filter(
+            company=self.request.user.company,
+            ativo=True
+        ).order_by('nome')
+        
+        return context
+
+
+class MessageDeleteView(CompanyRequiredMixin, DeleteView):
+    model = Message
+    template_name = 'wpp/messages/confirm_delete.html'
+    success_url = reverse_lazy('wpp:message_list')
+    
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        
+        # Não permite deletar se já foi enviada
+        if obj.status in ['enviando', 'enviada']:
+            messages.error(request, 'Não é possível deletar mensagem já enviada.')
+            return redirect('wpp:message_detail', pk=obj.pk)
+        
+        messages.success(self.request, 'Mensagem deletada com sucesso!')
+        return super().delete(request, *args, **kwargs)
+
+
+class MessageSendView(CompanyRequiredMixin, View):
+    """
+    View para enviar mensagens
+    Futuramente aqui será integrada a API da Evolution
+    """
+    template_name = 'wpp/messages/send_confirm.html'
+    
+    def get(self, request, pk):
+        message = get_object_or_404(Message, pk=pk, company=request.user.company)
+        
+        if not message.pode_enviar():
+            messages.error(request, 'Esta mensagem não pode ser enviada no momento.')
+            return redirect('wpp:message_detail', pk=pk)
+        
+        # Prévia dos envios
+        contatos_preview = message.contatos.all()[:5]
+        previews = []
+        
+        for contato in contatos_preview:
+            previews.append({
+                'contato': contato,
+                'texto': message.campanha.processar_texto_para_contato(contato)
+            })
+        
+        context = {
+            'message': message,
+            'previews': previews,
+            'total_contatos': message.total_contatos,
+        }
+        
+        return render(request, self.template_name, context)
+    
+    def post(self, request, pk):
+        message = get_object_or_404(Message, pk=pk, company=request.user.company)
+        
+        if not message.pode_enviar():
+            messages.error(request, 'Esta mensagem não pode ser enviada no momento.')
+            return redirect('wpp:message_detail', pk=pk)
+        
+        # Marca como enviando
+        message.status = 'enviando'
+        message.data_envio_iniciado = timezone.now()
+        message.save()
+        
+        try:
+            # Cria logs para todos os contatos
+            logs_created = []
+            for contato in message.contatos.all():
+                log, created = MessageLog.objects.get_or_create(
+                    message=message,
+                    contato=contato,
+                    defaults={
+                        'telefone': contato.telefone,
+                        'texto_enviado': message.campanha.processar_texto_para_contato(contato),
+                        'status': 'pendente'
+                    }
+                )
+                if created:
+                    logs_created.append(log)
+            
+            # TODO: Aqui será implementada a integração com Evolution API
+            # Por enquanto, simula envio bem-sucedido
+            for log in logs_created:
+                log.status = 'enviado'
+                log.enviado_em = timezone.now()
+                log.response_api = {'status': 'success', 'simulated': True}
+                log.save()
+            
+            # Atualiza estatísticas
+            message.total_enviados = len(logs_created)
+            message.status = 'enviada'
+            message.data_envio_finalizado = timezone.now()
+            message.save()
+            
+            messages.success(
+                request, 
+                f'Mensagem enviada com sucesso para {len(logs_created)} contatos!'
+            )
+            
+        except Exception as e:
+            # Em caso de erro
+            message.status = 'erro'
+            message.save()
+            messages.error(request, f'Erro ao enviar mensagem: {str(e)}')
+        
+        return redirect('wpp:message_detail', pk=pk)

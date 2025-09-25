@@ -1,0 +1,1 @@
+# Template tags vazias para Django reconhecer como pacote

@@ -1,0 +1,657 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ mensagem.nome }} - Mensagem{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:message_list' %}">Mensagens</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ mensagem.nome }}</li>
+    </ol>
+</nav>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">{{ mensagem.nome }}</h1>
+        <p class="mb-0 text-muted">
+            Criada em {{ mensagem.created_at|date:"d/m/Y H:i" }} por {{ mensagem.created_by.get_full_name|default:mensagem.created_by.username }}
+        </p>
+    </div>
+    <div>
+        {% if mensagem.pode_enviar %}
+            <a href="{% url 'wpp:message_send' mensagem.pk %}" 
+               class="btn btn-success btn-sm mr-2">
+                <i class="fas fa-paper-plane"></i> Enviar Agora
+            </a>
+        {% endif %}
+        
+        {% if mensagem.status == 'rascunho' or mensagem.status == 'pendente' %}
+            <a href="{% url 'wpp:message_update' mensagem.pk %}" 
+               class="btn btn-primary btn-sm mr-2">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+        {% endif %}
+        
+        {% if mensagem.status == 'rascunho' %}
+            <a href="{% url 'wpp:message_delete' mensagem.pk %}" 
+               class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-trash"></i> Excluir
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Status e Informações Gerais -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-info-circle mr-2"></i>Informações da Mensagem
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800">Status Atual:</h6>
+                        {% if mensagem.status == 'rascunho' %}
+                            <span class="badge badge-secondary badge-lg">
+                                <i class="fas fa-edit mr-1"></i>Rascunho
+                            </span>
+                        {% elif mensagem.status == 'pendente' %}
+                            <span class="badge badge-warning badge-lg">
+                                <i class="fas fa-clock mr-1"></i>Pendente
+                            </span>
+                        {% elif mensagem.status == 'enviando' %}
+                            <span class="badge badge-info badge-lg">
+                                <i class="fas fa-spinner fa-spin mr-1"></i>Enviando
+                            </span>
+                        {% elif mensagem.status == 'enviada' %}
+                            <span class="badge badge-success badge-lg">
+                                <i class="fas fa-check mr-1"></i>Enviada
+                            </span>
+                        {% elif mensagem.status == 'erro' %}
+                            <span class="badge badge-danger badge-lg">
+                                <i class="fas fa-exclamation mr-1"></i>Erro
+                            </span>
+                        {% elif mensagem.status == 'cancelada' %}
+                            <span class="badge badge-dark badge-lg">
+                                <i class="fas fa-times mr-1"></i>Cancelada
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800">Campanha:</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-success text-white mr-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <div>
+                                <div class="font-weight-bold">{{ mensagem.campanha.nome }}</div>
+                                <small class="text-muted">
+                                    {% if mensagem.campanha.ativo %}
+                                        <span class="badge badge-success">Ativa</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Inativa</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-3 text-center border-right">
+                        <div class="h4 font-weight-bold text-primary">{{ mensagem.total_contatos }}</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Total de Contatos
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center border-right">
+                        <div class="h4 font-weight-bold text-success">{{ mensagem.total_enviados }}</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Enviados
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center border-right">
+                        <div class="h4 font-weight-bold text-danger">{{ mensagem.total_erros }}</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Erros
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="h4 font-weight-bold text-info">{{ mensagem.timeout_envio }}s</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Timeout
+                        </div>
+                    </div>
+                </div>
+                
+                {% if mensagem.data_agendamento %}
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="font-weight-bold text-gray-800">Agendamento:</h6>
+                        <div class="text-info">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            {{ mensagem.data_agendamento|date:"d/m/Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Prévia da Mensagem -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-eye mr-2"></i>Prévia da Mensagem
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="whatsapp-message">
+                    {{ mensagem.get_preview_primeira_mensagem|linebreaks }}
+                </div>
+                <small class="text-muted mt-2 d-block">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Exemplo com o primeiro contato da lista
+                </small>
+            </div>
+        </div>
+
+        <!-- Progress Bar (se enviando ou enviada) -->
+        {% if mensagem.status == 'enviando' or mensagem.status == 'enviada' %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-info">
+                    <i class="fas fa-chart-line mr-2"></i>Progresso do Envio
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if mensagem.total_contatos > 0 %}
+                    {% widthratio mensagem.total_enviados mensagem.total_contatos 100 as progress_width %}
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div class="progress-bar bg-success" 
+                             role="progressbar" 
+                             style="width: {{ progress_width }}%"
+                             aria-valuenow="{{ mensagem.total_enviados }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ mensagem.total_contatos }}">
+                            {{ mensagem.total_enviados }}/{{ mensagem.total_contatos }} ({{ progress_width }}%)
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="row text-center">
+                    {% if mensagem.data_envio_iniciado %}
+                    <div class="col-6">
+                        <small class="text-muted">Iniciado em:</small>
+                        <div class="font-weight-bold">{{ mensagem.data_envio_iniciado|date:"d/m/Y H:i:s" }}</div>
+                    </div>
+                    {% endif %}
+                    {% if mensagem.data_envio_finalizado %}
+                    <div class="col-6">
+                        <small class="text-muted">Finalizado em:</small>
+                        <div class="font-weight-bold">{{ mensagem.data_envio_finalizado|date:"d/m/Y H:i:s" }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Logs de Envio -->
+        {% if logs %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-list mr-2"></i>Logs de Envio ({{ logs.count|default:logs|length }} registros)
+                </h6>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#" onclick="filterLogs('all')">Todos</a>
+                        <a class="dropdown-item" href="#" onclick="filterLogs('enviado')">Enviados</a>
+                        <a class="dropdown-item" href="#" onclick="filterLogs('erro')">Erros</a>
+                        <a class="dropdown-item" href="#" onclick="filterLogs('pendente')">Pendentes</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                    <table class="table table-hover mb-0">
+                        <thead class="thead-light sticky-top">
+                            <tr>
+                                <th>Contato</th>
+                                <th>Telefone</th>
+                                <th>Status</th>
+                                <th>Enviado em</th>
+                                <th width="80">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTableBody">
+                            {% for log in logs %}
+                            <tr data-status="{{ log.status }}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-circle 
+                                            {% if log.status == 'enviado' %}bg-success
+                                            {% elif log.status == 'erro' %}bg-danger
+                                            {% else %}bg-warning{% endif %} 
+                                            text-white mr-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                            {% if log.status == 'enviado' %}
+                                                <i class="fas fa-check"></i>
+                                            {% elif log.status == 'erro' %}
+                                                <i class="fas fa-times"></i>
+                                            {% else %}
+                                                <i class="fas fa-clock"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <div class="font-weight-bold">{{ log.contato.nome }}</div>
+                                            {% if log.contato.tags.all %}
+                                                <div class="small">
+                                                    {% for tag in log.contato.tags.all %}
+                                                        <span class="badge badge-secondary badge-sm">{{ tag.nome }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="font-weight-bold">{{ log.telefone }}</span>
+                                </td>
+                                <td>
+                                    {% if log.status == 'enviado' %}
+                                        <span class="badge badge-success">Enviado</span>
+                                    {% elif log.status == 'erro' %}
+                                        <span class="badge badge-danger">Erro</span>
+                                    {% else %}
+                                        <span class="badge badge-warning">Pendente</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if log.enviado_em %}
+                                        <small>{{ log.enviado_em|date:"d/m/Y H:i:s" }}</small>
+                                    {% else %}
+                                        <small class="text-muted">-</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button type="button" 
+                                            class="btn btn-outline-info btn-sm" 
+                                            data-toggle="modal" 
+                                            data-target="#logModal{{ log.pk }}"
+                                            title="Ver Detalhes">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if not logs %}
+                <div class="text-center py-4">
+                    <i class="fas fa-inbox fa-2x text-gray-300 mb-3"></i>
+                    <p class="text-muted">Nenhum log de envio encontrado</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Ações Rápidas -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-bolt mr-2"></i>Ações Rápidas
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if mensagem.pode_enviar %}
+                    <a href="{% url 'wpp:message_send' mensagem.pk %}" 
+                       class="btn btn-success btn-block mb-3">
+                        <i class="fas fa-paper-plane mr-2"></i>Enviar Agora
+                    </a>
+                {% endif %}
+                
+                {% if mensagem.status == 'rascunho' or mensagem.status == 'pendente' %}
+                    <a href="{% url 'wpp:message_update' mensagem.pk %}" 
+                       class="btn btn-primary btn-block mb-3">
+                        <i class="fas fa-edit mr-2"></i>Editar Mensagem
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'wpp:campaign_detail' mensagem.campanha.pk %}" 
+                   class="btn btn-outline-info btn-block mb-3">
+                    <i class="fas fa-bullhorn mr-2"></i>Ver Campanha
+                </a>
+                
+                {% if mensagem.status == 'rascunho' %}
+                    <hr>
+                    <a href="{% url 'wpp:message_delete' mensagem.pk %}" 
+                       class="btn btn-outline-danger btn-block">
+                        <i class="fas fa-trash mr-2"></i>Excluir Mensagem
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Estatísticas -->
+        {% if mensagem.status != 'rascunho' %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-info">
+                    <i class="fas fa-chart-bar mr-2"></i>Estatísticas
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if mensagem.total_contatos > 0 %}
+                    {% widthratio mensagem.total_enviados mensagem.total_contatos 100 as success_rate %}
+                    {% widthratio mensagem.total_erros mensagem.total_contatos 100 as error_rate %}
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="small font-weight-bold">Taxa de Sucesso:</span>
+                            <span class="small font-weight-bold text-success">{{ success_rate }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-success" style="width: {{ success_rate }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="small font-weight-bold">Taxa de Erro:</span>
+                            <span class="small font-weight-bold text-danger">{{ error_rate }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar bg-danger" style="width: {{ error_rate }}%"></div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="h6 font-weight-bold text-primary">{{ mensagem.total_contatos }}</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Total
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="h6 font-weight-bold text-success">{{ mensagem.total_enviados }}</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Enviados
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Timeline -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-warning">
+                    <i class="fas fa-clock mr-2"></i>Timeline
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-primary"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">Criação</h6>
+                            <p class="timeline-description">{{ mensagem.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if mensagem.updated_at != mensagem.created_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-info"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">Última Atualização</h6>
+                            <p class="timeline-description">{{ mensagem.updated_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if mensagem.data_envio_iniciado %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-warning"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">Envio Iniciado</h6>
+                            <p class="timeline-description">{{ mensagem.data_envio_iniciado|date:"d/m/Y H:i:s" }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if mensagem.data_envio_finalizado %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">Envio Finalizado</h6>
+                            <p class="timeline-description">{{ mensagem.data_envio_finalizado|date:"d/m/Y H:i:s" }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals para Detalhes dos Logs -->
+{% for log in logs %}
+<div class="modal fade" id="logModal{{ log.pk }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Detalhes do Envio - {{ log.contato.nome }}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-4"><strong>Contato:</strong></div>
+                    <div class="col-sm-8">{{ log.contato.nome }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4"><strong>Telefone:</strong></div>
+                    <div class="col-sm-8">{{ log.telefone }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4"><strong>Status:</strong></div>
+                    <div class="col-sm-8">
+                        {% if log.status == 'enviado' %}
+                            <span class="badge badge-success">Enviado</span>
+                        {% elif log.status == 'erro' %}
+                            <span class="badge badge-danger">Erro</span>
+                        {% else %}
+                            <span class="badge badge-warning">Pendente</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if log.enviado_em %}
+                <div class="row">
+                    <div class="col-sm-4"><strong>Enviado em:</strong></div>
+                    <div class="col-sm-8">{{ log.enviado_em|date:"d/m/Y H:i:s" }}</div>
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <strong>Texto Enviado:</strong>
+                        <div class="bg-light p-3 rounded mt-2">
+                            {{ log.texto_enviado|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if log.erro_mensagem %}
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <strong>Erro:</strong>
+                        <div class="alert alert-danger mt-2">
+                            {{ log.erro_mensagem }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if log.response_api %}
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <strong>Resposta da API:</strong>
+                        <pre class="bg-light p-3 rounded mt-2 small">{{ log.response_api|pprint }}</pre>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Função para filtrar logs
+function filterLogs(status) {
+    var rows = $('#logsTableBody tr');
+    
+    if (status === 'all') {
+        rows.show();
+    } else {
+        rows.hide();
+        rows.filter('[data-status="' + status + '"]').show();
+    }
+}
+
+// Auto-refresh para mensagens em envio
+{% if mensagem.status == 'enviando' %}
+setInterval(function() {
+    location.reload();
+}, 30000); // Recarrega a cada 30 segundos
+{% endif %}
+</script>
+
+<style>
+.icon-circle {
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.whatsapp-message {
+    background: #DCF8C6;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #4CAF50;
+    position: relative;
+    max-width: 400px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.whatsapp-message::before {
+    content: "";
+    position: absolute;
+    right: -8px;
+    top: 15px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid #4CAF50;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+}
+
+.badge-lg {
+    font-size: 1rem !important;
+    padding: 0.5rem 0.75rem !important;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -12px;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.timeline-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.timeline-description {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+</style>
+{% endblock %}

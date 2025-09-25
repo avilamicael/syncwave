@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if object %}Editar Campanha{% else %}Nova Campanha{% endif %} - WhatsApp
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:campaign_list' %}">Campanhas</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if object %}Editar{% else %}Nova{% endif %}
+        </li>
+    </ol>
+</nav>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">
+            {% if object %}Editar Campanha{% else %}Nova Campanha{% endif %}
+        </h1>
+        <p class="mb-0 text-muted">
+            {% if object %}
+                Atualize as informações da campanha "{{ object.nome }}"
+            {% else %}
+                Crie um template de mensagem reutilizável
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Form Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bullhorn mr-2"></i>
+                    {% if object %}Editar Campanha{% else %}Nova Campanha{% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" id="campaignForm">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            <h6 class="font-weight-bold">Ocorreram erros:</h6>
+                            <ul class="mb-0">
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Nome da Campanha -->
+                        <div class="col-lg-12 mb-4">
+                            <label for="{{ form.nome.id_for_label }}" class="form-label font-weight-bold">
+                                {{ form.nome.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.nome }}
+                            {% if form.nome.help_text %}
+                                <small class="form-text text-muted">{{ form.nome.help_text }}</small>
+                            {% endif %}
+                            {% if form.nome.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.nome.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Texto da Mensagem -->
+                        <div class="col-lg-12 mb-4">
+                            <label for="{{ form.texto.id_for_label }}" class="form-label font-weight-bold">
+                                {{ form.texto.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.texto }}
+                            {% if form.texto.help_text %}
+                                <small class="form-text text-muted">{{ form.texto.help_text }}</small>
+                            {% endif %}
+                            {% if form.texto.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.texto.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Variáveis Disponíveis -->
+                            <div class="mt-3">
+                                <small class="text-muted font-weight-bold">Variáveis disponíveis:</small>
+                                <div class="mt-2">
+                                    <button type="button" 
+                                            class="btn btn-outline-info btn-sm mr-2 mb-2" 
+                                            onclick="insertVariable('{% templatetag openvariable %}nome{% templatetag closevariable %}')">
+                                        <i class="fas fa-user"></i> {% templatetag openvariable %}nome{% templatetag closevariable %}
+                                    </button>
+                                </div>
+                                <small class="text-muted">Clique nas variáveis para inserir no texto</small>
+                            </div>
+                        </div>
+
+                        <!-- Status Ativo -->
+                        <div class="col-lg-12 mb-3">
+                            <div class="form-check">
+                                {{ form.ativo }}
+                                <label for="{{ form.ativo.id_for_label }}" class="form-check-label font-weight-bold">
+                                    {{ form.ativo.label }}
+                                </label>
+                            </div>
+                            {% if form.ativo.help_text %}
+                                <small class="form-text text-muted">{{ form.ativo.help_text }}</small>
+                            {% endif %}
+                            {% if form.ativo.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.ativo.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="row">
+                        <div class="col-12">
+                            <hr class="mb-4">
+                            <div class="text-right">
+                                <a href="{% url 'wpp:campaign_list' %}" 
+                                   class="btn btn-secondary mr-2">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                                <button type="submit" 
+                                        class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    {% if object %}Atualizar Campanha{% else %}Criar Campanha{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Prévia da Mensagem -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-eye mr-2"></i>Prévia da Mensagem
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="bg-light p-3 rounded" id="preview">
+                    <div class="text-muted text-center">
+                        Digite o texto da campanha para ver a prévia...
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    As variáveis serão substituídas pelos dados reais na hora do envio
+                </small>
+            </div>
+        </div>
+
+        <!-- Dicas -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-warning">
+                    <i class="fas fa-lightbulb mr-2"></i>Dicas
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success mr-2"></i>
+                        <small>Use <code>{% templatetag openvariable %}nome{% templatetag closevariable %}</code> para personalizar com o nome do contato</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success mr-2"></i>
+                        <small>Mantenha o texto claro e direto</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success mr-2"></i>
+                        <small>Campanhas podem ser reutilizadas várias vezes</small>
+                    </li>
+                    <li>
+                        <i class="fas fa-check text-success mr-2"></i>
+                        <small>Teste a mensagem antes do envio em massa</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variáveis globais
+var updatePreview;
+
+// Função para inserir variáveis
+function insertVariable(variable) {
+    console.log('Tentando inserir variável:', variable);
+    
+    var textarea = document.getElementById('{{ form.texto.id_for_label }}');
+    if (!textarea) {
+        console.error('Textarea não encontrado');
+        return;
+    }
+    
+    var cursorPos = textarea.selectionStart || 0;
+    var textBefore = textarea.value.substring(0, cursorPos);
+    var textAfter = textarea.value.substring(cursorPos);
+    
+    textarea.value = textBefore + variable + textAfter;
+    textarea.focus();
+    textarea.setSelectionRange(cursorPos + variable.length, cursorPos + variable.length);
+    
+    // Atualiza prévia
+    if (typeof updatePreview === 'function') {
+        updatePreview();
+    }
+    
+    console.log('Variável inserida:', variable);
+}
+
+$(document).ready(function() {
+    console.log('Inicializando script da campanha...');
+    
+    // Função para atualizar prévia
+    updatePreview = function() {
+        var texto = $('#{{ form.texto.id_for_label }}').val();
+        var preview = $('#preview');
+        
+        if (texto.trim() === '') {
+            preview.html('<div class="text-muted text-center">Digite o texto da campanha para ver a prévia...</div>');
+            return;
+        }
+        
+        // Substitui variáveis para prévia
+        var previewText = texto
+            .replace(/\{\{nome\}\}/g, '<span class="badge badge-info">João Silva</span>');
+        
+        // Quebra de linha
+        previewText = previewText.replace(/\n/g, '<br>');
+        
+        preview.html('<div class="whatsapp-message">' + previewText + '</div>');
+    };
+    
+    // Atualiza prévia em tempo real
+    $('#{{ form.texto.id_for_label }}').on('input', updatePreview);
+    
+    // Atualiza prévia inicial
+    updatePreview();
+    
+    console.log('Script inicializado com sucesso');
+});
+</script>
+
+<style>
+.whatsapp-message {
+    background: #DCF8C6;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #4CAF50;
+    position: relative;
+    max-width: 280px;
+}
+
+.whatsapp-message::before {
+    content: "";
+    position: absolute;
+    right: -8px;
+    top: 10px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid #4CAF50;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+}
+</style>
+{% endblock %}

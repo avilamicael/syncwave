@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Campanha - {{ object.nome }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:campaign_list' %}">Campanhas</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:campaign_detail' object.pk %}">{{ object.nome }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Excluir</li>
+    </ol>
+</nav>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">Excluir Campanha</h1>
+        <p class="mb-0 text-muted">
+            Esta ação não poderá ser desfeita
+        </p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header py-3 bg-danger">
+                <h6 class="m-0 font-weight-bold text-white">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Confirmar Exclusão
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle fa-2x mr-3"></i>
+                        <div>
+                            <h6 class="font-weight-bold mb-1">Atenção!</h6>
+                            <p class="mb-0">
+                                Ao excluir esta campanha, você também excluirá todos os envios e logs relacionados a ela.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informações da Campanha -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800 mb-3">Campanha a ser excluída:</h6>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-circle bg-danger text-white mr-3">
+                                <i class="fas fa-bullhorn"></i>
+                            </div>
+                            <div>
+                                <div class="font-weight-bold text-gray-900">{{ object.nome }}</div>
+                                <small class="text-muted">
+                                    Criada em {{ object.created_at|date:"d/m/Y" }}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-light p-3 rounded mb-3">
+                            <h6 class="font-weight-bold mb-2">Status:</h6>
+                            {% if object.ativo %}
+                                <span class="badge badge-success">Ativa</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inativa</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800 mb-3">Impacto da exclusão:</h6>
+                        <div class="bg-light p-3 rounded">
+                            <div class="row text-center">
+                                <div class="col-6 border-right">
+                                    <div class="h4 font-weight-bold text-warning">{{ object.envios.count }}</div>
+                                    <div class="text-xs text-uppercase text-gray-600">Envio{{ object.envios.count|pluralize }} serão excluído{{ object.envios.count|pluralize }}</div>
+                                </div>
+                                <div class="col-6">
+                                    {% with total_logs=object.envios.all|length %}
+                                    <div class="h4 font-weight-bold text-danger">{{ total_logs }}</div>
+                                    <div class="text-xs text-uppercase text-gray-600">Log{{ total_logs|pluralize }} perdido{{ total_logs|pluralize }}</div>
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prévia do Conteúdo -->
+                <div class="mb-4">
+                    <h6 class="font-weight-bold text-gray-800 mb-3">Conteúdo que será perdido:</h6>
+                    <div class="bg-light p-3 rounded border">
+                        <div style="white-space: pre-wrap; max-height: 150px; overflow-y: auto;">{{ object.texto }}</div>
+                    </div>
+                </div>
+
+                <!-- Formulário de Confirmação -->
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label font-weight-bold" for="confirmDelete">
+                                Eu entendo que esta ação é irreversível e confirmo a exclusão da campanha "{{ object.nome }}"
+                            </label>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="text-right">
+                        <a href="{% url 'wpp:campaign_detail' object.pk %}" 
+                           class="btn btn-secondary mr-3">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" 
+                                class="btn btn-danger"
+                                id="deleteButton"
+                                disabled>
+                            <i class="fas fa-trash"></i> Confirmar Exclusão
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#confirmDelete').change(function() {
+        $('#deleteButton').prop('disabled', !this.checked);
+    });
+});
+</script>
+
+<style>
+.icon-circle {
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

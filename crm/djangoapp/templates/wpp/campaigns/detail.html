@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ campanha.nome }} - Campanha{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:campaign_list' %}">Campanhas</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ campanha.nome }}</li>
+    </ol>
+</nav>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">{{ campanha.nome }}</h1>
+        <p class="mb-0 text-muted">
+            Criada em {{ campanha.created_at|date:"d/m/Y" }} por {{ campanha.created_by.get_full_name|default:campanha.created_by.username }}
+        </p>
+    </div>
+    <div>
+        {% if campanha.ativo %}
+            <a href="{% url 'wpp:message_create' %}?campanha={{ campanha.pk }}" 
+               class="btn btn-success btn-sm mr-2">
+                <i class="fas fa-paper-plane"></i> Criar Envio
+            </a>
+        {% endif %}
+        <a href="{% url 'wpp:campaign_update' campanha.pk %}" 
+           class="btn btn-primary btn-sm mr-2">
+            <i class="fas fa-edit"></i> Editar
+        </a>
+        <a href="{% url 'wpp:campaign_delete' campanha.pk %}" 
+           class="btn btn-outline-danger btn-sm">
+            <i class="fas fa-trash"></i> Excluir
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Conteúdo da Campanha -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-file-alt mr-2"></i>Conteúdo da Campanha
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800 mb-3">Texto Original:</h6>
+                        <div class="bg-light p-3 rounded border" style="white-space: pre-wrap;">{{ campanha.texto }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800 mb-3">Prévia Processada:</h6>
+                        <div class="whatsapp-message">
+                            {{ campanha.get_preview_texto|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if contatos_exemplo %}
+                <hr class="my-4">
+                <h6 class="font-weight-bold text-gray-800 mb-3">Exemplos com Contatos Reais:</h6>
+                <div class="row">
+                    {% for contato in contatos_exemplo %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="icon-circle bg-info text-white mr-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                        {{ contato.nome|first|upper }}
+                                    </div>
+                                    <small class="font-weight-bold">{{ contato.nome }}</small>
+                                </div>
+                                <div class="whatsapp-message-small">
+                                    Olá {{ contato.nome }}! [Prévia da campanha]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Histórico de Envios -->
+        {% if envios_recentes %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-history mr-2"></i>Envios Recentes
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Envio</th>
+                                <th>Contatos</th>
+                                <th>Status</th>
+                                <th>Data</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for envio in envios_recentes %}
+                            <tr>
+                                <td>
+                                    <div class="font-weight-bold">{{ envio.nome }}</div>
+                                    <small class="text-muted">por {{ envio.created_by.get_full_name|default:envio.created_by.username }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-info">{{ envio.total_contatos }} contatos</span>
+                                </td>
+                                <td>
+                                    {% if envio.status == 'rascunho' %}
+                                        <span class="badge badge-secondary">Rascunho</span>
+                                    {% elif envio.status == 'pendente' %}
+                                        <span class="badge badge-warning">Pendente</span>
+                                    {% elif envio.status == 'enviando' %}
+                                        <span class="badge badge-info">Enviando</span>
+                                    {% elif envio.status == 'enviada' %}
+                                        <span class="badge badge-success">Enviada</span>
+                                    {% elif envio.status == 'erro' %}
+                                        <span class="badge badge-danger">Erro</span>
+                                    {% else %}
+                                        <span class="badge badge-dark">{{ envio.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ envio.created_at|date:"d/m/Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'wpp:message_detail' envio.pk %}" 
+                                       class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'wpp:message_list' %}?campanha={{ campanha.pk }}" 
+                       class="btn btn-outline-primary btn-sm">
+                        Ver Todos os Envios
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Status da Campanha -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-info-circle mr-2"></i>Status da Campanha
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-12 mb-3">
+                        {% if campanha.ativo %}
+                            <span class="badge badge-success badge-lg p-3">
+                                <i class="fas fa-check-circle mr-1"></i> ATIVA
+                            </span>
+                        {% else %}
+                            <span class="badge badge-danger badge-lg p-3">
+                                <i class="fas fa-times-circle mr-1"></i> INATIVA
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-6 text-center border-right">
+                        <div class="h5 font-weight-bold text-primary">{{ total_envios }}</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Total de Envios
+                        </div>
+                    </div>
+                    <div class="col-6 text-center">
+                        <div class="h5 font-weight-bold text-info">{{ campanha.texto|length }}</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Caracteres
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-bolt mr-2"></i>Ações Rápidas
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if campanha.ativo %}
+                    <a href="{% url 'wpp:message_create' %}?campanha={{ campanha.pk }}" 
+                       class="btn btn-success btn-block mb-3">
+                        <i class="fas fa-paper-plane mr-2"></i>Criar Envio
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'wpp:campaign_update' campanha.pk %}" 
+                   class="btn btn-primary btn-block mb-3">
+                    <i class="fas fa-edit mr-2"></i>Editar Campanha
+                </a>
+                
+                <a href="{% url 'wpp:message_list' %}?campanha={{ campanha.pk }}" 
+                   class="btn btn-outline-info btn-block mb-3">
+                    <i class="fas fa-list mr-2"></i>Ver Todos os Envios
+                </a>
+                
+                <hr>
+                
+                <a href="{% url 'wpp:campaign_delete' campanha.pk %}" 
+                   class="btn btn-outline-danger btn-block">
+                    <i class="fas fa-trash mr-2"></i>Excluir Campanha
+                </a>
+            </div>
+        </div>
+
+        <!-- Variáveis Disponíveis -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-warning">
+                    <i class="fas fa-code mr-2"></i>Variáveis Disponíveis
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <code class="bg-light p-2 d-block rounded">{{nome}}</code>
+                    <small class="text-muted">Nome do contato</small>
+                </div>
+                <!-- <div class="mb-3">
+                    <code class="bg-light p-2 d-block rounded">{{empresa}}</code>
+                    <small class="text-muted">Nome da empresa</small>
+                </div> -->
+                <small class="text-muted">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Essas variáveis são substituídas automaticamente durante o envio
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.icon-circle {
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.whatsapp-message {
+    background: #DCF8C6;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #4CAF50;
+    position: relative;
+    max-width: 300px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.whatsapp-message::before {
+    content: "";
+    position: absolute;
+    right: -8px;
+    top: 15px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid #4CAF50;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+}
+
+.whatsapp-message-small {
+    background: #DCF8C6;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #4CAF50;
+    font-size: 0.85rem;
+    max-width: 250px;
+}
+
+.badge-lg {
+    font-size: 1rem !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Envio - {{ message.nome }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:message_list' %}">Mensagens</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:message_detail' message.pk %}">{{ message.nome }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Confirmar Envio</li>
+    </ol>
+</nav>
+
+<!-- Page Heading -->
+<div class="text-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Confirmar Envio da Mensagem</h1>
+    <p class="mb-0 text-muted">
+        Revise os detalhes antes de iniciar o envio para {{ total_contatos }} contatos
+    </p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Alert de Confirmação -->
+        <div class="alert alert-warning text-center">
+            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+            <h5>Atenção!</h5>
+            <p class="mb-0">
+                Esta ação iniciará o envio de <strong>{{ total_contatos }}</strong> mensagens WhatsApp.
+                Uma vez iniciado, o processo não pode ser cancelado.
+            </p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Detalhes do Envio -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-info-circle mr-2"></i>Detalhes do Envio
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="font-weight-bold text-gray-800">Nome da Mensagem:</h6>
+                                <p class="text-gray-900">{{ message.nome }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="font-weight-bold text-gray-800">Campanha:</h6>
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-circle bg-success text-white mr-2" style="width: 25px; height: 25px; font-size: 0.7rem;">
+                                        <i class="fas fa-bullhorn"></i>
+                                    </div>
+                                    <span class="text-gray-900">{{ message.campanha.nome }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-4 text-center border-right">
+                                <div class="h4 font-weight-bold text-primary">{{ total_contatos }}</div>
+                                <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                                    Total de Contatos
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center border-right">
+                                <div class="h4 font-weight-bold text-info">{{ message.timeout_envio }}s</div>
+                                <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                                    Intervalo entre Envios
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="h4 font-weight-bold text-warning">
+                                    Calculando...
+                                </div>
+                                <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                                    Tempo Estimado
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if message.data_agendamento %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="font-weight-bold text-gray-800">Agendamento:</h6>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-calendar-alt mr-2"></i>
+                                    <strong>Data/Hora:</strong> {{ message.data_agendamento|date:"d/m/Y H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Prévia das Mensagens -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-success">
+                            <i class="fas fa-eye mr-2"></i>Prévia das Mensagens ({{ previews|length }} exemplos)
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for preview in previews %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card border-left-success">
+                                    <div class="card-body py-3">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="icon-circle bg-info text-white mr-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                {{ preview.contato.nome|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold small">{{ preview.contato.nome }}</div>
+                                                <div class="text-muted small">{{ preview.contato.telefone }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="whatsapp-message-small">
+                                            {{ preview.texto|linebreaks }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if total_contatos > previews|length %}
+                        <div class="text-center">
+                            <small class="text-muted">
+                                + outros contatos receberão mensagens personalizadas
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <!-- Resumo e Ações -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-danger">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Confirmar Envio
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-paper-plane fa-3x text-success mb-3"></i>
+                            <h5 class="text-gray-900">Pronto para Enviar</h5>
+                            <p class="text-muted">
+                                {{ total_contatos }} mensagens serão enviadas usando a campanha "{{ message.campanha.nome }}"
+                            </p>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="fas fa-info-circle mr-1"></i>
+                                O envio será processado em segundo plano. Você pode acompanhar o progresso na página de detalhes.
+                            </small>
+                        </div>
+
+                        <form method="post" id="sendForm">
+                            {% csrf_token %}
+                            
+                            <!-- Checklist de Confirmação -->
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="confirm1" required>
+                                    <label class="form-check-label small" for="confirm1">
+                                        Verifiquei o conteúdo das mensagens
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="confirm2" required>
+                                    <label class="form-check-label small" for="confirm2">
+                                        Confirmei a lista de contatos
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="confirm3" required>
+                                    <label class="form-check-label small" for="confirm3">
+                                        Entendo que o envio não pode ser cancelado
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <a href="{% url 'wpp:message_detail' message.pk %}" 
+                                   class="btn btn-secondary btn-block mb-2">
+                                    <i class="fas fa-arrow-left mr-1"></i> Voltar
+                                </a>
+                                <button type="submit" 
+                                        class="btn btn-success btn-block" 
+                                        id="confirmSendBtn" 
+                                        disabled>
+                                    <i class="fas fa-paper-plane mr-1"></i>
+                                    Confirmar e Enviar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Dicas de Boas Práticas -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-warning">
+                            <i class="fas fa-lightbulb mr-2"></i>Dicas
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success mr-2"></i>
+                                <small>Evite envios em horários inadequados</small>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success mr-2"></i>
+                                <small>Use intervalos adequados entre mensagens</small>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success mr-2"></i>
+                                <small>Teste com poucos contatos primeiro</small>
+                            </li>
+                            <li>
+                                <i class="fas fa-check text-success mr-2"></i>
+                                <small>Monitore os resultados após o envio</small>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Status da API -->
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-info">
+                            <i class="fas fa-server mr-2"></i>Status do Sistema
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="mr-3">
+                                <i class="fas fa-circle text-success"></i>
+                            </div>
+                            <div>
+                                <div class="small font-weight-bold">WhatsApp API</div>
+                                <div class="small text-muted">Conectado e Funcionando</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="mr-3">
+                                <i class="fas fa-circle text-success"></i>
+                            </div>
+                            <div>
+                                <div class="small font-weight-bold">Sistema de Envio</div>
+                                <div class="small text-muted">Pronto para Processar</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Habilita/desabilita o botão de envio baseado nos checkboxes
+    function checkFormValidity() {
+        var allChecked = $('#confirm1, #confirm2, #confirm3').filter(':checked').length === 3;
+        $('#confirmSendBtn').prop('disabled', !allChecked);
+    }
+    
+    // Event listeners para os checkboxes
+    $('#confirm1, #confirm2, #confirm3').on('change', checkFormValidity);
+    
+    // Confirmação adicional antes do envio
+    $('#sendForm').on('submit', function(e) {
+        if (!confirm('Tem certeza que deseja iniciar o envio das mensagens? Esta ação não pode ser desfeita.')) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Desabilita o botão para evitar duplo clique
+        $('#confirmSendBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Iniciando Envio...');
+        
+        return true;
+    });
+});
+</script>
+
+<style>
+.icon-circle {
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.whatsapp-message-small {
+    background: #DCF8C6;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #4CAF50;
+    font-size: 0.85rem;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #28a745 !important;
+}
+
+.form-check-input:checked ~ .form-check-label {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.card-body .fas.fa-circle {
+    font-size: 0.7rem;
+}
+</style>
+{% endblock %}

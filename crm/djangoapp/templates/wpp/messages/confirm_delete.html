@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Mensagem - {{ object.nome }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:message_list' %}">Mensagens</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:message_detail' object.pk %}">{{ object.nome }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Excluir</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Alert de Perigo -->
+        <div class="alert alert-danger text-center mb-4">
+            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+            <h4>Confirmar Exclusão</h4>
+            <p class="mb-0">
+                Esta ação é <strong>irreversível</strong> e excluirá permanentemente a mensagem.
+            </p>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-danger">
+                    <i class="fas fa-trash mr-2"></i>Excluir Mensagem
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- Informações da Mensagem -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800">Nome da Mensagem:</h6>
+                        <p class="text-gray-900">{{ object.nome }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800">Campanha:</h6>
+                        <p class="text-gray-900">{{ object.campanha.nome }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800">Status Atual:</h6>
+                        {% if object.status == 'rascunho' %}
+                            <span class="badge badge-secondary">Rascunho</span>
+                        {% elif object.status == 'pendente' %}
+                            <span class="badge badge-warning">Pendente</span>
+                        {% elif object.status == 'enviando' %}
+                            <span class="badge badge-info">Enviando</span>
+                        {% elif object.status == 'enviada' %}
+                            <span class="badge badge-success">Enviada</span>
+                        {% elif object.status == 'erro' %}
+                            <span class="badge badge-danger">Erro</span>
+                        {% else %}
+                            <span class="badge badge-dark">{{ object.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800">Total de Contatos:</h6>
+                        <p class="text-gray-900">{{ object.total_contatos }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800">Criada em:</h6>
+                        <p class="text-gray-900">{{ object.created_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-gray-800">Criada por:</h6>
+                        <p class="text-gray-900">{{ object.created_by.get_full_name|default:object.created_by.username }}</p>
+                    </div>
+                </div>
+
+                <!-- Aviso sobre Status -->
+                {% if object.status != 'rascunho' %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <strong>Atenção:</strong> Esta mensagem tem status "{{ object.get_status_display }}" e pode conter dados de envio importantes.
+                </div>
+                {% endif %}
+
+                <!-- O que será excluído -->
+                <div class="bg-light p-3 rounded mb-4">
+                    <h6 class="font-weight-bold text-gray-800 mb-3">O que será excluído:</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-1">
+                            <i class="fas fa-check text-danger mr-2"></i>
+                            A mensagem "{{ object.nome }}"
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-check text-danger mr-2"></i>
+                            Configurações de envio e agendamento
+                        </li>
+                        {% if object.total_enviados > 0 %}
+                        <li class="mb-1">
+                            <i class="fas fa-check text-danger mr-2"></i>
+                            Logs de envio ({{ object.total_enviados }} registros)
+                        </li>
+                        {% endif %}
+                        <li class="mb-1">
+                            <i class="fas fa-check text-danger mr-2"></i>
+                            Estatísticas e relatórios relacionados
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- O que NÃO será excluído -->
+                <div class="bg-success text-white p-3 rounded mb-4">
+                    <h6 class="font-weight-bold mb-3">O que será preservado:</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-1">
+                            <i class="fas fa-check mr-2"></i>
+                            A campanha "{{ object.campanha.nome }}"
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-check mr-2"></i>
+                            Os contatos da lista
+                        </li>
+                        <li class="mb-1">
+                            <i class="fas fa-check mr-2"></i>
+                            Outras mensagens usando a mesma campanha
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Formulário de Confirmação -->
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                <strong>Confirmo que desejo excluir permanentemente esta mensagem e todos os dados relacionados</strong>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="{% url 'wpp:message_detail' object.pk %}" 
+                           class="btn btn-secondary btn-lg mr-3">
+                            <i class="fas fa-arrow-left mr-1"></i> Cancelar
+                        </a>
+                        <button type="submit" 
+                                class="btn btn-danger btn-lg" 
+                                id="deleteBtn" 
+                                disabled>
+                            <i class="fas fa-trash mr-1"></i> Confirmar Exclusão
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Habilita/desabilita o botão de exclusão baseado no checkbox
+    $('#confirmDelete').on('change', function() {
+        $('#deleteBtn').prop('disabled', !$(this).is(':checked'));
+    });
+    
+    // Confirmação adicional antes da exclusão
+    $('form').on('submit', function(e) {
+        if (!confirm('ÚLTIMA CONFIRMAÇÃO: Tem absoluta certeza que deseja excluir esta mensagem? Esta ação NÃO PODE ser desfeita.')) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Desabilita o botão para evitar duplo clique
+        $('#deleteBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Excluindo...');
+        
+        return true;
+    });
+});
+</script>
+
+<style>
+.form-check-input:checked ~ .form-check-label {
+    color: #dc3545;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

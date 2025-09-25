@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+
+{% block title %}Mensagens - WhatsApp{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Mensagens</li>
+    </ol>
+</nav>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">Gerenciar Mensagens</h1>
+        <p class="mb-0 text-muted">
+            {{ paginator.count|default:0 }} mensagem{{ paginator.count|default:0|pluralize:"ns" }} encontrada{{ paginator.count|default:0|pluralize }}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'wpp:message_create' %}" 
+           class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> Nova Mensagem
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-filter mr-2"></i>Filtros
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row align-items-end">
+            <!-- Search -->
+            <div class="col-md-4 mb-3">
+                <label for="search" class="form-label font-weight-bold">Buscar</label>
+                <input type="text" 
+                       name="search" 
+                       id="search"
+                       value="{{ request.GET.search }}"
+                       placeholder="Nome da mensagem ou campanha..."
+                       class="form-control">
+            </div>
+            
+            <!-- Status Filter -->
+            <div class="col-md-3 mb-3">
+                <label for="status" class="form-label font-weight-bold">Status</label>
+                <select name="status" 
+                        id="status"
+                        class="form-control">
+                    <option value="">Todos</option>
+                    <option value="rascunho" {% if request.GET.status == 'rascunho' %}selected{% endif %}>Rascunho</option>
+                    <option value="pendente" {% if request.GET.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                    <option value="enviando" {% if request.GET.status == 'enviando' %}selected{% endif %}>Enviando</option>
+                    <option value="enviada" {% if request.GET.status == 'enviada' %}selected{% endif %}>Enviada</option>
+                    <option value="erro" {% if request.GET.status == 'erro' %}selected{% endif %}>Erro</option>
+                </select>
+            </div>
+            
+            <!-- Campaign Filter -->
+            <div class="col-md-3 mb-3">
+                <label for="campanha" class="form-label font-weight-bold">Campanha</label>
+                <select name="campanha" 
+                        id="campanha"
+                        class="form-control">
+                    <option value="">Todas</option>
+                    {% for campanha in campanhas %}
+                    <option value="{{ campanha.pk }}" {% if request.GET.campanha == campanha.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ campanha.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Actions -->
+            <div class="col-md-2 mb-3">
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                {% if request.GET.search or request.GET.status or request.GET.campanha %}
+                <a href="{% url 'wpp:message_list' %}" 
+                   class="btn btn-outline-secondary btn-sm btn-block mt-2">
+                    <i class="fas fa-times"></i> Limpar
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Messages List -->
+{% if mensagens %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Mensagens</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Mensagem</th>
+                        <th>Campanha</th>
+                        <th>Contatos</th>
+                        <th>Status</th>
+                        <th>Progresso</th>
+                        <th>Criada em</th>
+                        <th width="150">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mensagem in mensagens %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle 
+                                    {% if mensagem.status == 'rascunho' %}bg-secondary
+                                    {% elif mensagem.status == 'pendente' %}bg-warning
+                                    {% elif mensagem.status == 'enviando' %}bg-info
+                                    {% elif mensagem.status == 'enviada' %}bg-success
+                                    {% elif mensagem.status == 'erro' %}bg-danger
+                                    {% else %}bg-dark{% endif %} 
+                                    text-white mr-3">
+                                    {% if mensagem.status == 'rascunho' %}
+                                        <i class="fas fa-edit"></i>
+                                    {% elif mensagem.status == 'pendente' %}
+                                        <i class="fas fa-clock"></i>
+                                    {% elif mensagem.status == 'enviando' %}
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    {% elif mensagem.status == 'enviada' %}
+                                        <i class="fas fa-check"></i>
+                                    {% elif mensagem.status == 'erro' %}
+                                        <i class="fas fa-exclamation"></i>
+                                    {% else %}
+                                        <i class="fas fa-envelope"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="font-weight-bold text-gray-900">{{ mensagem.nome }}</div>
+                                    <div class="small text-muted">
+                                        por {{ mensagem.created_by.get_full_name|default:mensagem.created_by.username }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="font-weight-bold">{{ mensagem.campanha.nome }}</div>
+                            <div class="small text-muted">
+                                {% if mensagem.campanha.ativo %}
+                                    <span class="badge badge-success">Ativa</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">Inativa</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-info">{{ mensagem.total_contatos }} contatos</span>
+                        </td>
+                        <td>
+                            {% if mensagem.status == 'rascunho' %}
+                                <span class="badge badge-secondary">Rascunho</span>
+                            {% elif mensagem.status == 'pendente' %}
+                                <span class="badge badge-warning">Pendente</span>
+                            {% elif mensagem.status == 'enviando' %}
+                                <span class="badge badge-info">
+                                    <i class="fas fa-spinner fa-spin mr-1"></i>Enviando
+                                </span>
+                            {% elif mensagem.status == 'enviada' %}
+                                <span class="badge badge-success">Enviada</span>
+                            {% elif mensagem.status == 'erro' %}
+                                <span class="badge badge-danger">Erro</span>
+                            {% elif mensagem.status == 'cancelada' %}
+                                <span class="badge badge-dark">Cancelada</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if mensagem.status == 'enviada' and mensagem.total_contatos > 0 %}
+                                <div class="progress" style="height: 20px;">
+                                    {% widthratio mensagem.total_enviados mensagem.total_contatos 100 as progress_width %}
+                                    <div class="progress-bar bg-success" 
+                                         role="progressbar" 
+                                         style="width: {{ progress_width }}%"
+                                         aria-valuenow="{{ mensagem.total_enviados }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="{{ mensagem.total_contatos }}">
+                                        {{ mensagem.total_enviados }}/{{ mensagem.total_contatos }}
+                                    </div>
+                                </div>
+                            {% elif mensagem.status == 'enviando' %}
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" 
+                                         style="width: 100%">
+                                        Processando...
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ mensagem.created_at|date:"d/m/Y H:i" }}</small>
+                            {% if mensagem.data_envio_iniciado %}
+                                <br><small class="text-info">Enviado: {{ mensagem.data_envio_iniciado|date:"d/m H:i" }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'wpp:message_detail' mensagem.pk %}" 
+                                   class="btn btn-outline-info btn-sm" title="Visualizar">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                
+                                {% if mensagem.status == 'rascunho' or mensagem.status == 'pendente' %}
+                                    <a href="{% url 'wpp:message_update' mensagem.pk %}" 
+                                       class="btn btn-outline-primary btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                {% endif %}
+                                
+                                {% if mensagem.pode_enviar %}
+                                    <a href="{% url 'wpp:message_send' mensagem.pk %}" 
+                                       class="btn btn-outline-success btn-sm" title="Enviar">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </a>
+                                {% endif %}
+                                
+                                {% if mensagem.status == 'rascunho' %}
+                                    <a href="{% url 'wpp:message_delete' mensagem.pk %}" 
+                                       class="btn btn-outline-danger btn-sm" title="Excluir">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div class="card shadow">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="mb-0 text-muted">
+                    Mostrando {{ page_obj.start_index }} até {{ page_obj.end_index }} 
+                    de {{ page_obj.paginator.count }} resultado{{ page_obj.paginator.count|pluralize }}
+                </p>
+            </div>
+            <div>
+                <nav aria-label="Navegação de páginas">
+                    <ul class="pagination mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" 
+                                       href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- Empty State -->
+<div class="card shadow">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-envelope fa-4x text-gray-300 mb-4"></i>
+        <h5 class="text-gray-900 mb-2">
+            {% if request.GET.search or request.GET.status or request.GET.campanha %}
+                Nenhuma mensagem encontrada
+            {% else %}
+                Nenhuma mensagem cadastrada
+            {% endif %}
+        </h5>
+        <p class="text-muted mb-4">
+            {% if request.GET.search or request.GET.status or request.GET.campanha %}
+                Tente ajustar os filtros ou criar uma nova mensagem.
+            {% else %}
+                Crie envios de mensagens para seus contatos usando campanhas.
+            {% endif %}
+        </p>
+        <div>
+            <a href="{% url 'wpp:message_create' %}" 
+               class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nova Mensagem
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.icon-circle {
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    font-size: 0.75rem;
+    line-height: 20px;
+}
+</style>
+{% endblock %}

@@ -35,6 +35,22 @@ urlpatterns = [
     path('ajax/contact-delete/<uuid:pk>/', views.AjaxContactDeleteView.as_view(), name='ajax_contact_delete'),
     path('ajax/tag-delete/<uuid:pk>/', views.AjaxTagDeleteView.as_view(), name='ajax_tag_delete'),
     path('ajax/stats/', views.AjaxStatsView.as_view(), name='ajax_stats'),
+    path('ajax/campaign-preview/', views.AjaxCampaignPreviewView.as_view(), name='ajax_campaign_preview'),
+    
+    # Campaigns URLs
+    path('wpp/campanhas/', views.CampaignListView.as_view(), name='campaign_list'),
+    path('wpp/campanhas/criar/', views.CampaignCreateView.as_view(), name='campaign_create'),
+    path('wpp/campanhas/<uuid:pk>/editar/', views.CampaignUpdateView.as_view(), name='campaign_update'),
+    path('wpp/campanhas/<uuid:pk>/deletar/', views.CampaignDeleteView.as_view(), name='campaign_delete'),
+    path('wpp/campanhas/<uuid:pk>/', views.CampaignDetailView.as_view(), name='campaign_detail'),
+    
+    # Messages URLs
+    path('wpp/mensagens/', views.MessageListView.as_view(), name='message_list'),
+    path('wpp/mensagens/criar/', views.MessageCreateView.as_view(), name='message_create'),
+    path('wpp/mensagens/<uuid:pk>/editar/', views.MessageUpdateView.as_view(), name='message_update'),
+    path('wpp/mensagens/<uuid:pk>/deletar/', views.MessageDeleteView.as_view(), name='message_delete'),
+    path('wpp/mensagens/<uuid:pk>/', views.MessageDetailView.as_view(), name='message_detail'),
+    path('wpp/mensagens/<uuid:pk>/enviar/', views.MessageSendView.as_view(), name='message_send'),
     
     # Dashboard
     path('wpp/dashboard', views.DashboardView.as_view(), name='dashboard'),

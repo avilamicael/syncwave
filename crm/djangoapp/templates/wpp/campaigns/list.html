@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block title %}Campanhas - WhatsApp{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Campanhas</li>
+    </ol>
+</nav>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">Gerenciar Campanhas</h1>
+        <p class="mb-0 text-muted">
+            {{ paginator.count|default:0 }} campanha{{ paginator.count|default:0|pluralize }} encontrada{{ paginator.count|default:0|pluralize }}
+        </p>
+    </div>
+    <div>
+        <a href="{% url 'wpp:campaign_create' %}" 
+           class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> Nova Campanha
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-filter mr-2"></i>Filtros
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row align-items-end">
+            <!-- Search -->
+            <div class="col-md-6 mb-3">
+                <label for="search" class="form-label font-weight-bold">Buscar</label>
+                <input type="text" 
+                       name="search" 
+                       id="search"
+                       value="{{ request.GET.search }}"
+                       placeholder="Nome da campanha..."
+                       class="form-control">
+            </div>
+            
+            <!-- Status Filter -->
+            <div class="col-md-4 mb-3">
+                <label for="status" class="form-label font-weight-bold">Status</label>
+                <select name="status" 
+                        id="status"
+                        class="form-control">
+                    <option value="">Todas</option>
+                    <option value="ativo" {% if request.GET.status == 'ativo' %}selected{% endif %}>Ativas</option>
+                    <option value="inativo" {% if request.GET.status == 'inativo' %}selected{% endif %}>Inativas</option>
+                </select>
+            </div>
+            
+            <!-- Actions -->
+            <div class="col-md-2 mb-3">
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                {% if request.GET.search or request.GET.status %}
+                <a href="{% url 'wpp:campaign_list' %}" 
+                   class="btn btn-outline-secondary btn-sm btn-block mt-2">
+                    <i class="fas fa-times"></i> Limpar
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Campaigns List -->
+{% if campanhas %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Campanhas</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Campanha</th>
+                        <th>Prévia do Texto</th>
+                        <th>Anexados a</th>
+                        <th>Status</th>
+                        <th width="120">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for campanha in campanhas %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="icon-circle bg-success text-white mr-3">
+                                    <i class="fas fa-bullhorn"></i>
+                                </div>
+                                <div>
+                                    <div class="font-weight-bold text-gray-900">{{ campanha.nome }}</div>
+                                    <div class="small text-muted">
+                                        Criado em {{ campanha.created_at|date:"d/m/Y" }}
+                                        por {{ campanha.created_by.get_full_name|default:campanha.created_by.username }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 300px;" title="{{ campanha.get_preview_texto }}">
+                                {{ campanha.get_preview_texto|truncatechars:80 }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-{% if campanha.total_envios > 0 %}info{% else %}secondary{% endif %}">
+                                {{ campanha.total_envios }} {{ campanha.total_envios|pluralize:"mensagem,mensagens" }}
+
+                            </span>
+                        </td>
+                        <td>
+                            {% if campanha.ativo %}
+                                <span class="badge badge-success">Ativa</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inativa</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'wpp:campaign_detail' campanha.pk %}" 
+                                   class="btn btn-outline-info btn-sm" title="Visualizar">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'wpp:campaign_update' campanha.pk %}" 
+                                   class="btn btn-outline-primary btn-sm" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'wpp:campaign_delete' campanha.pk %}" 
+                                   class="btn btn-outline-danger btn-sm" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div class="card shadow">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="mb-0 text-muted">
+                    Mostrando {{ page_obj.start_index }} até {{ page_obj.end_index }} 
+                    de {{ page_obj.paginator.count }} resultado{{ page_obj.paginator.count|pluralize }}
+                </p>
+            </div>
+            <div>
+                <nav aria-label="Navegação de páginas">
+                    <ul class="pagination mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" 
+                                       href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" 
+                                   href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<!-- Empty State -->
+<div class="card shadow">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-bullhorn fa-4x text-gray-300 mb-4"></i>
+        <h5 class="text-gray-900 mb-2">
+            {% if request.GET.search or request.GET.status %}
+                Nenhuma campanha encontrada
+            {% else %}
+                Nenhuma campanha cadastrada
+            {% endif %}
+        </h5>
+        <p class="text-muted mb-4">
+            {% if request.GET.search or request.GET.status %}
+                Tente ajustar os filtros ou criar uma nova campanha.
+            {% else %}
+                Crie templates de mensagens reutilizáveis para seus envios.
+            {% endif %}
+        </p>
+        <div>
+            <a href="{% url 'wpp:campaign_create' %}" 
+               class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nova Campanha
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.icon-circle {
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

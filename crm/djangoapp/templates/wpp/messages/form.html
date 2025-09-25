@@ -1,0 +1,559 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if object %}Editar Mensagem{% else %}Nova Mensagem{% endif %} - WhatsApp
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:message_list' %}">Mensagens</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {% if object %}Editar{% else %}Nova{% endif %}
+        </li>
+    </ol>
+</nav>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">
+            {% if object %}Editar Mensagem{% else %}Nova Mensagem{% endif %}
+        </h1>
+        <p class="mb-0 text-muted">
+            {% if object %}
+                Atualize as informações do envio "{{ object.nome }}"
+            {% else %}
+                Configure um novo envio de mensagens
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Form Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-envelope mr-2"></i>
+                    {% if object %}Editar Mensagem{% else %}Nova Mensagem{% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" id="messageForm">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            <h6 class="font-weight-bold">Ocorreram erros:</h6>
+                            <ul class="mb-0">
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Nome da Mensagem -->
+                        <div class="col-lg-12 mb-4">
+                            <label for="{{ form.nome.id_for_label }}" class="form-label font-weight-bold">
+                                {{ form.nome.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.nome }}
+                            {% if form.nome.help_text %}
+                                <small class="form-text text-muted">{{ form.nome.help_text }}</small>
+                            {% endif %}
+                            {% if form.nome.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.nome.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Campanha -->
+                        <div class="col-lg-6 mb-4">
+                            <label for="{{ form.campanha.id_for_label }}" class="form-label font-weight-bold">
+                                {{ form.campanha.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.campanha }}
+                            {% if form.campanha.help_text %}
+                                <small class="form-text text-muted">{{ form.campanha.help_text }}</small>
+                            {% endif %}
+                            {% if form.campanha.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.campanha.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="mt-2">
+                                <a href="{% url 'wpp:campaign_create' %}" 
+                                   class="btn btn-outline-primary btn-sm" 
+                                   target="_blank">
+                                    <i class="fas fa-plus"></i> Nova Campanha
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Timeout -->
+                        <div class="col-lg-6 mb-4">
+                            <label for="{{ form.timeout_envio.id_for_label }}" class="form-label font-weight-bold">
+                                {{ form.timeout_envio.label }}
+                            </label>
+                            {{ form.timeout_envio }}
+                            {% if form.timeout_envio.help_text %}
+                                <small class="form-text text-muted">{{ form.timeout_envio.help_text }}</small>
+                            {% endif %}
+                            {% if form.timeout_envio.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.timeout_envio.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Data de Agendamento -->
+                        <div class="col-lg-6 mb-4">
+                            <label for="{{ form.data_agendamento.id_for_label }}" class="form-label font-weight-bold">
+                                {{ form.data_agendamento.label }}
+                            </label>
+                            {{ form.data_agendamento }}
+                            {% if form.data_agendamento.help_text %}
+                                <small class="form-text text-muted">{{ form.data_agendamento.help_text }}</small>
+                            {% endif %}
+                            {% if form.data_agendamento.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.data_agendamento.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Seleção de Contatos -->
+                        <div class="col-lg-12 mb-4">
+                            <label class="form-label font-weight-bold">
+                                {{ form.contatos.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            
+                            <!-- Filtros Rápidos -->
+                            <div class="card border-light mb-3">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-filter mr-2"></i>Filtros Rápidos
+                                        <button type="button" class="btn btn-outline-primary btn-sm float-right" onclick="toggleAllContacts()">
+                                            <i class="fas fa-check-square"></i> Selecionar Todos
+                                        </button>
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <input type="text" id="searchContacts" 
+                                                   class="form-control form-control-sm" 
+                                                   placeholder="Buscar contatos...">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <select id="filterByTag" class="form-control form-control-sm">
+                                                <option value="">Todas as tags</option>
+                                                {% for tag in user.company.tags.all %}
+                                                <option value="{{ tag.nome }}">{{ tag.nome }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <select id="filterByStatus" class="form-control form-control-sm">
+                                                <option value="">Todos os status</option>
+                                                <option value="ativo">Apenas Ativos</option>
+                                                <option value="inativo">Apenas Inativos</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Contatos -->
+                            <div class="contact-selection-container" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 5px; padding: 15px;">
+                                <div class="row" id="contactsList">
+                                    {% for contato in contatos_disponiveis %}
+                                    <div class="col-md-6 mb-2 contact-item" 
+                                         data-name="{{ contato.nome|lower }}" 
+                                         data-tags="{% for tag in contato.tags.all %}{{ tag.nome|lower }} {% endfor %}"
+                                         data-status="{% if contato.ativo %}ativo{% else %}inativo{% endif %}">
+                                        <div class="form-check">
+                                            <input type="checkbox" 
+                                                   name="contatos" 
+                                                   value="{{ contato.pk }}" 
+                                                   id="contact_{{ contato.pk }}"
+                                                   class="form-check-input contact-checkbox"
+                                                   {% if object.contatos.all %}{% for selected_contact in object.contatos.all %}{% if selected_contact.pk == contato.pk %}checked{% endif %}{% endfor %}{% endif %}>
+                                            <label for="contact_{{ contato.pk }}" class="form-check-label w-100">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="icon-circle bg-info text-white mr-2" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                                        {{ contato.nome|first|upper }}
+                                                    </div>
+                                                    <div>
+                                                        <div class="font-weight-bold">{{ contato.nome }}</div>
+                                                        <div class="small text-muted">
+                                                            {{ contato.telefone }}
+                                                            {% if contato.tags.all %}
+                                                                | {% for tag in contato.tags.all %}
+                                                                    <span class="badge badge-secondary badge-sm">{{ tag.nome }}</span>
+                                                                {% endfor %}
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                {% if not contatos_disponiveis %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-users fa-2x mb-3"></i>
+                                    <p>Nenhum contato disponível</p>
+                                    <a href="{% url 'wpp:contact_create' %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-plus"></i> Adicionar Contatos
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Contador de Contatos Selecionados -->
+                            <div class="mt-2">
+                                <small class="text-info font-weight-bold">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    <span id="selectedCount">0</span> contato(s) selecionado(s)
+                                </small>
+                            </div>
+                            
+                            {% if form.contatos.help_text %}
+                                <small class="form-text text-muted">{{ form.contatos.help_text }}</small>
+                            {% endif %}
+                            {% if form.contatos.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.contatos.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="row">
+                        <div class="col-12">
+                            <hr class="mb-4">
+                            <div class="text-right">
+                                <a href="{% url 'wpp:message_list' %}" 
+                                   class="btn btn-secondary mr-2">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                                <button type="submit" 
+                                        class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    {% if object %}Atualizar Mensagem{% else %}Criar Mensagem{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Prévia da Mensagem -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-eye mr-2"></i>Prévia da Mensagem
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="bg-light p-3 rounded" id="preview">
+                    <div class="text-muted text-center">
+                        Selecione uma campanha para ver a prévia...
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Exemplo de como a mensagem aparecerá para os contatos
+                </small>
+            </div>
+        </div>
+
+        <!-- Resumo do Envio -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-info">
+                    <i class="fas fa-chart-pie mr-2"></i>Resumo do Envio
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-12 mb-3">
+                        <div class="h4 font-weight-bold text-primary" id="totalContacts">0</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Contatos Selecionados
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-6 text-center border-right">
+                        <div class="h6 font-weight-bold text-success" id="timeoutValue">2s</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Intervalo
+                        </div>
+                    </div>
+                    <div class="col-6 text-center">
+                        <div class="h6 font-weight-bold text-info" id="estimatedTime">0min</div>
+                        <div class="text-xs font-weight-bold text-uppercase tracking-wide text-gray-600">
+                            Tempo Estimado
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dicas -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-warning">
+                    <i class="fas fa-lightbulb mr-2"></i>Dicas
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success mr-2"></i>
+                        <small>Use filtros para selecionar contatos específicos</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success mr-2"></i>
+                        <small>Configure um timeout para evitar bloqueios</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success mr-2"></i>
+                        <small>Agende envios para horários apropriados</small>
+                    </li>
+                    <li>
+                        <i class="fas fa-check text-success mr-2"></i>
+                        <small>Teste primeiro com poucos contatos</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    console.log('Inicializando formulário de mensagem...');
+    
+    // Debug: mostra valor inicial da data de agendamento
+    var dataAgendamento = $('#{{ form.data_agendamento.id_for_label }}').val();
+    console.log('Data agendamento inicial:', dataAgendamento);
+    // Atualiza contador de contatos selecionados
+    function updateSelectedCount() {
+        var count = $('.contact-checkbox:checked').length;
+        $('#selectedCount').text(count);
+        $('#totalContacts').text(count);
+        
+        // Atualiza tempo estimado
+        var timeout = parseInt($('#{{ form.timeout_envio.id_for_label }}').val()) || 2;
+        $('#timeoutValue').text(timeout + 's');
+        
+        var estimatedMinutes = Math.ceil((count * timeout) / 60);
+        $('#estimatedTime').text(estimatedMinutes + 'min');
+    }
+    
+    // Filtro de busca de contatos
+    $('#searchContacts').on('input', function() {
+        var search = $(this).val().toLowerCase();
+        filterContacts();
+    });
+    
+    // Filtro por tag
+    $('#filterByTag').on('change', function() {
+        filterContacts();
+    });
+    
+    // Filtro por status
+    $('#filterByStatus').on('change', function() {
+        filterContacts();
+    });
+    
+    // Função para filtrar contatos
+    function filterContacts() {
+        var search = $('#searchContacts').val().toLowerCase();
+        var tagFilter = $('#filterByTag').val().toLowerCase();
+        var statusFilter = $('#filterByStatus').val();
+        
+        $('.contact-item').each(function() {
+            var $item = $(this);
+            var name = $item.data('name');
+            var tags = $item.data('tags');
+            var status = $item.data('status');
+            
+            var showItem = true;
+            
+            // Filtro de busca
+            if (search && !name.includes(search)) {
+                showItem = false;
+            }
+            
+            // Filtro por tag
+            if (tagFilter && !tags.includes(tagFilter)) {
+                showItem = false;
+            }
+            
+            // Filtro por status
+            if (statusFilter && status !== statusFilter) {
+                showItem = false;
+            }
+            
+            if (showItem) {
+                $item.show();
+            } else {
+                $item.hide();
+            }
+        });
+    }
+    
+    // Selecionar/deselecionar todos
+    window.toggleAllContacts = function() {
+        var visibleCheckboxes = $('.contact-item:visible').find('.contact-checkbox');
+        var allChecked = visibleCheckboxes.length === visibleCheckboxes.filter(':checked').length;
+        
+        visibleCheckboxes.prop('checked', !allChecked);
+        updateSelectedCount();
+        
+        var btn = $('.float-right');
+        if (allChecked) {
+            btn.html('<i class="fas fa-check-square"></i> Selecionar Todos');
+        } else {
+            btn.html('<i class="fas fa-square"></i> Desmarcar Todos');
+        }
+    };
+    
+    // Atualiza prévia quando campanha muda
+    $('#{{ form.campanha.id_for_label }}').on('change', function() {
+        var campanhaId = $(this).val();
+        if (campanhaId) {
+            // Fazer requisição para buscar o texto real da campanha
+            $.ajax({
+                url: '{% url "wpp:ajax_campaign_preview" %}',
+                data: { 'campanha_id': campanhaId },
+                success: function(data) {
+                    if (data.success) {
+                        var textoComQuebras = data.texto.replace(/\n/g, '<br>');
+                        $('#preview').html('<div class="whatsapp-message">' + textoComQuebras + '</div>');
+                    } else {
+                        $('#preview').html('<div class="alert alert-warning">Erro: ' + data.message + '</div>');
+                    }
+                },
+                error: function() {
+                    $('#preview').html('<div class="alert alert-danger">Erro ao carregar prévia da campanha</div>');
+                }
+            });
+        } else {
+            $('#preview').html('<div class="text-muted text-center">Selecione uma campanha para ver a prévia...</div>');
+        }
+    });
+    
+    // Event listeners
+    $('.contact-checkbox').on('change', updateSelectedCount);
+    $('#{{ form.timeout_envio.id_for_label }}').on('input', updateSelectedCount);
+    
+    // Inicialização
+    updateSelectedCount();
+    
+    // Atualiza prévia inicial se já tiver campanha selecionada
+    if ($('#{{ form.campanha.id_for_label }}').val()) {
+        $('#{{ form.campanha.id_for_label }}').trigger('change');
+    }
+    
+    // Pré-seleciona campanha se vier via GET
+    var urlParams = new URLSearchParams(window.location.search);
+    var campanhaParam = urlParams.get('campanha');
+    if (campanhaParam) {
+        $('#{{ form.campanha.id_for_label }}').val(campanhaParam).trigger('change');
+    }
+});
+</script>
+
+<style>
+.icon-circle {
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.whatsapp-message {
+    background: #DCF8C6;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #4CAF50;
+    position: relative;
+    max-width: 300px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.whatsapp-message::before {
+    content: "";
+    position: absolute;
+    right: -8px;
+    top: 15px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid #4CAF50;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+}
+
+.contact-selection-container {
+    background-color: #f8f9fa;
+}
+
+.form-check-label:hover {
+    background-color: rgba(0,123,255,0.1);
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.contact-checkbox:checked + label {
+    background-color: rgba(40,167,69,0.1);
+    border-radius: 5px;
+    padding: 5px;
+}
+</style>
+{% endblock %}
