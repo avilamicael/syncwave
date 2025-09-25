@@ -21,12 +21,12 @@ services:
     env_file:
       - ./dotenv_files/.env
 
-  adminer:
-    container_name: adminer
-    image: adminer
-    ports:
-      - 8080:8080
-    depends_on:
-      - psql
-    environment:
-      - ADMINER_DEFAULT_SERVER=psql
+  # adminer:
+  #   container_name: adminer
+  #   image: adminer
+  #   ports:
+  #     - 8080:8080
+  #   depends_on:
+  #     - psql
+  #   environment:
+  #     - ADMINER_DEFAULT_SERVER=psql

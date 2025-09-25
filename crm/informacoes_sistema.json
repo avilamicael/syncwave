@@ -1,5 +1,5 @@
 {
-    "project_root": "C:\\Users\\Micael\\Desktop\\syncWave\\djangoapp",
+    "project_root": "C:\\Users\\Micael\\Desktop\\syncWave\\crm\\djangoapp",
     "files": [
         {
             "path": "manage.py",
@@ -622,6 +622,17 @@
             "functions": []
         },
         {
+            "path": "accounts\\urls.py",
+            "hash": "cc35981516a58a60a6f222efa48836d4",
+            "type": "python",
+            "classes": [],
+            "functions": [],
+            "urls": [
+                "path(\"login/\", CollaboratorLoginView.as_view(), name=\"login\"),",
+                "path(\"logout/\", CollaboratorLogoutView.as_view(), name=\"logout\"),"
+            ]
+        },
+        {
             "path": "accounts\\utils.py",
             "hash": "85fc9ded3a3e50049f81740eb5239596",
             "type": "python",
@@ -639,7 +650,7 @@
         },
         {
             "path": "accounts\\views.py",
-            "hash": "f467fa232324ad139aaecd0df7698f3f",
+            "hash": "1b404a794ebb7b2a80ea56ac3c7b824b",
             "type": "python",
             "classes": [],
             "functions": []
@@ -696,19 +707,20 @@
         },
         {
             "path": "project\\settings.py",
-            "hash": "c80d1b7945a72dab2ed28d5813740780",
+            "hash": "aced17cd27e3a71eb94a6bc764e814b0",
             "type": "python",
             "classes": [],
             "functions": []
         },
         {
             "path": "project\\urls.py",
-            "hash": "a040a8c926edcf6e26303c73a3c119a5",
+            "hash": "4d6ff774a21dc1ed06e4f1359e37170b",
             "type": "python",
             "classes": [],
             "functions": [],
             "urls": [
-                "path('admin/', admin.site.urls),"
+                "path('admin/', admin.site.urls),",
+                "path('', include('wpp.urls')),"
             ]
         },
         {
@@ -720,6 +732,100 @@
         },
         {
             "path": "project\\__init__.py",
+            "hash": "d41d8cd98f00b204e9800998ecf8427e",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        },
+        {
+            "path": "templates\\base.html",
+            "hash": "f1762aba9325a6109cee552d4be962b4",
+            "type": "other"
+        },
+        {
+            "path": "templates\\dashboard.html",
+            "hash": "16d898e0ae66e560ff2b81d15bb71862",
+            "type": "other"
+        },
+        {
+            "path": "templates\\accounts\\login.html",
+            "hash": "b5f808e228a99653b43c245361ffcefd",
+            "type": "other"
+        },
+        {
+            "path": "wpp\\admin.py",
+            "hash": "e3dc717de887db03a015667a5fec59d8",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        },
+        {
+            "path": "wpp\\apps.py",
+            "hash": "ade8edf03ab8d4d70f20702a1f965ccb",
+            "type": "python",
+            "classes": [
+                {
+                    "name": "WppConfig",
+                    "fields": [
+                        {
+                            "name": "default_auto_field",
+                            "type": null,
+                            "args": {}
+                        },
+                        {
+                            "name": "name",
+                            "type": null,
+                            "args": {}
+                        }
+                    ]
+                }
+            ],
+            "functions": []
+        },
+        {
+            "path": "wpp\\models.py",
+            "hash": "8c4eb991c6dca757bdd77f539092e29b",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        },
+        {
+            "path": "wpp\\tests.py",
+            "hash": "465b7e9f69bfd158c850cdfbc7306818",
+            "type": "python",
+            "classes": [],
+            "functions": []
+        },
+        {
+            "path": "wpp\\urls.py",
+            "hash": "2a6b55ac71f92b27bd6adc19eb08cfe1",
+            "type": "python",
+            "classes": [],
+            "functions": [],
+            "urls": [
+                "path(\"dashboard/\", views.dashboard, name=\"dashboard\"),"
+            ]
+        },
+        {
+            "path": "wpp\\views.py",
+            "hash": "392b7747ee218c67ca856dddcf6fdc3e",
+            "type": "python",
+            "classes": [],
+            "functions": [
+                {
+                    "name": "dashboard",
+                    "args": [
+                        "request"
+                    ],
+                    "docstring": null,
+                    "body": [
+                        "return render(request, 'dashboard.html')"
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "wpp\\__init__.py",
             "hash": "d41d8cd98f00b204e9800998ecf8427e",
             "type": "python",
             "classes": [],

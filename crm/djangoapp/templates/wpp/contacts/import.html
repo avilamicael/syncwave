@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Importar Contatos - WhatsApp{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'wpp:contact_list' %}">Contatos</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Importar CSV</li>
+    </ol>
+</nav>
+
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">Importar Contatos</h1>
+        <p class="mb-0 text-muted">Faça upload de um arquivo CSV para importar contatos em lote</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Form Card -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-upload mr-2"></i>Upload do Arquivo
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            <h6 class="font-weight-bold">Ocorreram erros:</h6>
+                            <ul class="mb-0">
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- File Upload -->
+                    <div class="form-group">
+                        <label for="{{ form.csv_file.id_for_label }}" class="form-label font-weight-bold">
+                            {{ form.csv_file.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="custom-file">
+                            {{ form.csv_file }}
+                            <label class="custom-file-label" for="{{ form.csv_file.id_for_label }}">
+                                Escolher arquivo CSV...
+                            </label>
+                        </div>
+                        {% if form.csv_file.help_text %}
+                            <small class="form-text text-muted">{{ form.csv_file.help_text }}</small>
+                        {% endif %}
+                        {% if form.csv_file.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.csv_file.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">
+                            <i class="fas fa-info-circle"></i> Apenas arquivos CSV até 10MB
+                        </small>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <hr>
+                    <div class="text-right">
+                        <a href="{% url 'wpp:contact_list' %}" 
+                           class="btn btn-secondary mr-2">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Importar Contatos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions Card -->
+    <div class="col-lg-4">
+        <!-- Format Instructions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-file-csv mr-2"></i>Formato do Arquivo
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="text-danger">Colunas obrigatórias:</h6>
+                <ul class="list-unstyled mb-3">
+                    <li><code class="text-danger bg-light px-2 py-1 rounded">nome</code></li>
+                    <li><code class="text-danger bg-light px-2 py-1 rounded">telefone</code></li>
+                </ul>
+                
+                <h6 class="text-info">Colunas opcionais:</h6>
+                <ul class="list-unstyled">
+                    <li><code class="text-info bg-light px-2 py-1 rounded">email</code></li>
+                    <li><code class="text-info bg-light px-2 py-1 rounded">tags</code> <small class="text-muted">(separadas por vírgula)</small></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Example -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-eye mr-2"></i>Exemplo
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="bg-light p-3 rounded mb-3">
+                    <pre class="mb-0 small text-dark">nome,telefone,email,tags
+João Silva,+5548999999999,joao@email.com,"VIP,Cliente"
+Maria Santos,+5548888888888,maria@email.com,Prospect
+Pedro Costa,+5548777777777,,Inadimplente</pre>
+                </div>
+                <div class="text-center">
+                    <a href="data:text/csv;charset=utf-8,nome%2Ctelefone%2Cemail%2Ctags%0AJo%C3%A3o%20Silva%2C%2B5511999999999%2Cjoao%40email.com%2C%22VIP%2CCliente%22%0AMaria%20Santos%2C%2B5511888888888%2Cmaria%40email.com%2CProspect%0APedro%20Costa%2C%2B5511777777777%2C%2CInadimplente" 
+                       download="exemplo_contatos.csv"
+                       class="btn btn-info btn-sm">
+                        <i class="fas fa-download"></i> Baixar exemplo
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Important Notes -->
+        <div class="card border-warning shadow mb-4">
+            <div class="card-header bg-warning">
+                <h6 class="m-0 font-weight-bold text-dark">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Pontos importantes
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success mr-1"></i>
+                        Telefones devem estar no formato internacional (+5548999999999)
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success mr-1"></i>
+                        Contatos com telefones duplicados serão ignorados
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success mr-1"></i>
+                        Tags que não existem serão criadas automaticamente
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-check-circle text-success mr-1"></i>
+                        Máximo de 1000 contatos por importação
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Update custom file input label
+$('input[type="file"]').change(function(e) {
+    var fileName = e.target.files[0] ? e.target.files[0].name : 'Escolher arquivo CSV...';
+    $(this).next('.custom-file-label').html(fileName);
+});
+</script>
+{% endblock %}

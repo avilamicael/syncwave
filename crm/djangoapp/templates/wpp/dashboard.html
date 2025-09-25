@@ -1,0 +1,675 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - WhatsApp{% endblock %}
+
+{% block content %}
+<!-- Begin Page Content -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard Contatos</h1>
+    <div>
+        <button type="button" class="btn btn-primary btn-sm shadow-sm" data-toggle="modal" data-target="#contactModal">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Novo Contato
+        </button>
+        <button type="button" class="btn btn-success btn-sm shadow-sm ml-2" data-toggle="modal" data-target="#tagModal">
+            <i class="fas fa-tag fa-sm text-white-50"></i> Nova Tag
+        </button>
+        <!-- <button type="button" class="btn btn-info btn-sm shadow-sm ml-2" data-toggle="modal" data-target="#importModal">
+            <i class="fas fa-upload fa-sm text-white-50"></i> Importar CSV
+        </button> -->
+    </div>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+
+    <!-- Total Contatos Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2 cursor-pointer" onclick="loadContacts()">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total de Contatos</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-contatos">{{ total_contatos|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Total Tags Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2 cursor-pointer" onclick="loadTags()">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total de Tags
+                        </div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800" id="total-tags">{{ total_tags|default:0 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tags fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contatos Ativos Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Contatos Ativos</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="contatos-ativos">{{ contatos_ativos|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Ações Rápidas</div>
+                        <div class="btn-group-vertical btn-group-sm w-100">
+                            <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#importModal">
+                                <i class="fas fa-upload"></i> Importar Contatos
+                            </button>
+                            <!-- <a href="{% url 'wpp:contact_export' %}" class="btn btn-outline-secondary btn-sm mt-1">
+                                <i class="fas fa-download"></i> Exportar
+                            </a> -->
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-cogs fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+    <!-- Lista de Contatos/Tags Dinâmica -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary" id="list-title">Contatos Recentes</h6>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary active" onclick="loadContacts()" id="btn-contacts">
+                        <i class="fas fa-users"></i> Contatos
+                    </button>
+                    <button class="btn btn-outline-success" onclick="loadTags()" id="btn-tags">
+                        <i class="fas fa-tags"></i> Tags
+                    </button>
+                </div>
+            </div>
+            <div class="card-body" id="dynamic-content">
+                <!-- Conteúdo será carregado via AJAX -->
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Carregando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Atalhos -->
+    <!-- <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Ações Rápidas</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <button class="list-group-item list-group-item-action" data-toggle="modal" data-target="#contactModal">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1"><i class="fas fa-plus text-primary"></i> Criar Contato</h6>
+                        </div>
+                        <p class="mb-1">Adicionar novo contato à lista</p>
+                    </button>
+                    <button class="list-group-item list-group-item-action" data-toggle="modal" data-target="#tagModal">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1"><i class="fas fa-tag text-success"></i> Criar Tag</h6>
+                        </div>
+                        <p class="mb-1">Criar nova categoria para organização</p>
+                    </button>
+                    <button class="list-group-item list-group-item-action" data-toggle="modal" data-target="#importModal">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1"><i class="fas fa-upload text-info"></i> Importar CSV</h6>
+                        </div>
+                        <p class="mb-1">Importar contatos em lote</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div> -->
+</div>
+
+<!-- Modal para Criar/Editar Contato -->
+<div class="modal fade" id="contactModal" tabindex="-1" role="dialog" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contactModalLabel">
+                    <i class="fas fa-user-plus mr-2"></i>Novo Contato
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="contactForm">
+                <div class="modal-body">
+                    <div id="contact-form-content">
+                        <!-- Conteúdo será carregado via AJAX -->
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="save-contact">
+                        <i class="fas fa-save"></i> Salvar Contato
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Criar/Editar Tag -->
+<div class="modal fade" id="tagModal" tabindex="-1" role="dialog" aria-labelledby="tagModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tagModalLabel">
+                    <i class="fas fa-tag mr-2"></i>Nova Tag
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="tagForm">
+                <div class="modal-body">
+                    <div id="tag-form-content">
+                        <!-- Conteúdo será carregado via AJAX -->
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="sr-only">Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success" id="save-tag">
+                        <i class="fas fa-save"></i> Salvar Tag
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Importar CSV -->
+<div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="fas fa-upload mr-2"></i>Importar Contatos
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="importForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div id="import-form-content">
+                        <!-- Conteúdo será carregado via AJAX -->
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-info" role="status">
+                                <span class="sr-only">Carregando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-info" id="import-contacts">
+                        <i class="fas fa-upload"></i> Importar Contatos
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Confirmar Exclusão
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="delete-content">
+                <!-- Conteúdo será carregado via AJAX -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete">
+                    <i class="fas fa-trash"></i> Confirmar Exclusão
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.icon-circle {
+    height: 2rem;
+    width: 2rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: bold;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cursor-pointer:hover {
+    transform: translateY(-2px);
+}
+
+.list-group-item-action {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e3e6f0;
+    border-radius: 10px 10px 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #e3e6f0;
+    border-radius: 0 0 10px 10px;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Carregar contatos inicialmente
+    loadContacts();
+    
+    // Event listeners para modais
+    $('#contactModal').on('show.bs.modal', function() {
+        loadContactForm();
+    });
+    
+    $('#tagModal').on('show.bs.modal', function() {
+        loadTagForm();
+    });
+    
+    $('#importModal').on('show.bs.modal', function() {
+        loadImportForm();
+    });
+    
+    // Submit forms
+    $('#contactForm').on('submit', function(e) {
+        e.preventDefault();
+        saveContact();
+    });
+    
+    $('#tagForm').on('submit', function(e) {
+        e.preventDefault();
+        saveTag();
+    });
+    
+    $('#importForm').on('submit', function(e) {
+        e.preventDefault();
+        importContacts();
+    });
+});
+
+// Função para carregar lista de contatos
+function loadContacts() {
+    $('#btn-contacts').addClass('active').removeClass('btn-outline-primary').addClass('btn-primary');
+    $('#btn-tags').removeClass('active btn-success').addClass('btn-outline-success');
+    $('#list-title').text('Contatos Recentes');
+    
+    $('#dynamic-content').html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="sr-only">Carregando...</span></div></div>');
+    
+    $.get('{% url "wpp:ajax_contacts_list" %}')
+        .done(function(data) {
+            $('#dynamic-content').html(data);
+        })
+        .fail(function() {
+            $('#dynamic-content').html('<div class="alert alert-danger">Erro ao carregar contatos</div>');
+        });
+}
+
+// Função para carregar lista de tags
+function loadTags() {
+    $('#btn-tags').addClass('active').removeClass('btn-outline-success').addClass('btn-success');
+    $('#btn-contacts').removeClass('active btn-primary').addClass('btn-outline-primary');
+    $('#list-title').text('Tags Disponíveis');
+    
+    $('#dynamic-content').html('<div class="text-center py-4"><div class="spinner-border text-success" role="status"><span class="sr-only">Carregando...</span></div></div>');
+    
+    $.get('{% url "wpp:ajax_tags_list" %}')
+        .done(function(data) {
+            $('#dynamic-content').html(data);
+        })
+        .fail(function() {
+            $('#dynamic-content').html('<div class="alert alert-danger">Erro ao carregar tags</div>');
+        });
+}
+
+// Função para carregar formulário de contato
+function loadContactForm(contactId = null) {
+    const url = contactId ? `{% url "wpp:ajax_contact_form_edit" '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', contactId) : '{% url "wpp:ajax_contact_form" %}';
+    const title = contactId ? '<i class="fas fa-edit mr-2"></i>Editar Contato' : '<i class="fas fa-user-plus mr-2"></i>Novo Contato';
+    
+    $('#contactModalLabel').html(title);
+    $('#contact-form-content').html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="sr-only">Carregando...</span></div></div>');
+    
+    $.get(url)
+        .done(function(data) {
+            $('#contact-form-content').html(data);
+        })
+        .fail(function() {
+            $('#contact-form-content').html('<div class="alert alert-danger">Erro ao carregar formulário</div>');
+        });
+}
+
+// Função para carregar formulário de tag
+function loadTagForm(tagId = null) {
+    const url = tagId ? `{% url "wpp:ajax_tag_form_edit" '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', tagId) : '{% url "wpp:ajax_tag_form" %}';
+    const title = tagId ? '<i class="fas fa-edit mr-2"></i>Editar Tag' : '<i class="fas fa-tag mr-2"></i>Nova Tag';
+    
+    $('#tagModalLabel').html(title);
+    $('#tag-form-content').html('<div class="text-center py-4"><div class="spinner-border text-success" role="status"><span class="sr-only">Carregando...</span></div></div>');
+    
+    $.get(url)
+        .done(function(data) {
+            $('#tag-form-content').html(data);
+            initializeTagPreview();
+        })
+        .fail(function() {
+            $('#tag-form-content').html('<div class="alert alert-danger">Erro ao carregar formulário</div>');
+        });
+}
+
+// Função para carregar formulário de importação
+function loadImportForm() {
+    $('#import-form-content').html('<div class="text-center py-4"><div class="spinner-border text-info" role="status"><span class="sr-only">Carregando...</span></div></div>');
+    
+    $.get('{% url "wpp:ajax_import_form" %}')
+        .done(function(data) {
+            $('#import-form-content').html(data);
+        })
+        .fail(function() {
+            $('#import-form-content').html('<div class="alert alert-danger">Erro ao carregar formulário</div>');
+        });
+}
+
+// Função para salvar contato
+function saveContact() {
+    const formData = new FormData($('#contactForm')[0]);
+    const submitBtn = $('#save-contact');
+    
+    submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Salvando...');
+    
+    $.ajax({
+        url: '{% url "wpp:ajax_contact_save" %}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                $('#contactModal').modal('hide');
+                showAlert('success', 'Contato salvo com sucesso!');
+                updateStats();
+                loadContacts();
+            } else {
+                $('#contact-form-content').html(response.form_html);
+            }
+        },
+        error: function() {
+            showAlert('danger', 'Erro ao salvar contato');
+        },
+        complete: function() {
+            submitBtn.prop('disabled', false).html('<i class="fas fa-save"></i> Salvar Contato');
+        }
+    });
+}
+
+// Função para salvar tag
+function saveTag() {
+    const formData = new FormData($('#tagForm')[0]);
+    const submitBtn = $('#save-tag');
+    
+    submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Salvando...');
+    
+    $.ajax({
+        url: '{% url "wpp:ajax_tag_save" %}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                $('#tagModal').modal('hide');
+                showAlert('success', 'Tag salva com sucesso!');
+                updateStats();
+                if ($('#btn-tags').hasClass('active')) {
+                    loadTags();
+                }
+            } else {
+                $('#tag-form-content').html(response.form_html);
+                initializeTagPreview();
+            }
+        },
+        error: function() {
+            showAlert('danger', 'Erro ao salvar tag');
+        },
+        complete: function() {
+            submitBtn.prop('disabled', false).html('<i class="fas fa-save"></i> Salvar Tag');
+        }
+    });
+}
+
+// Função para importar contatos
+function importContacts() {
+    const formData = new FormData($('#importForm')[0]);
+    const submitBtn = $('#import-contacts');
+    
+    submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Importando...');
+    
+    $.ajax({
+        url: '{% url "wpp:ajax_import_contacts" %}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                $('#importModal').modal('hide');
+                showAlert('success', `${response.imported} contatos importados com sucesso!`);
+                updateStats();
+                loadContacts();
+            } else {
+                $('#import-form-content').html(response.form_html);
+            }
+        },
+        error: function() {
+            showAlert('danger', 'Erro ao importar contatos');
+        },
+        complete: function() {
+            submitBtn.prop('disabled', false).html('<i class="fas fa-upload"></i> Importar Contatos');
+        }
+    });
+}
+
+// Função para atualizar estatísticas
+function updateStats() {
+    $.get('{% url "wpp:ajax_stats" %}')
+        .done(function(data) {
+            $('#total-contatos').text(data.total_contatos);
+            $('#contatos-ativos').text(data.contatos_ativos);
+            $('#total-tags').text(data.total_tags);
+        });
+}
+
+// Função para mostrar alerts
+function showAlert(type, message) {
+    const alert = `
+        <div class="alert alert-${type} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            ${message}
+        </div>
+    `;
+    $('body').append(alert);
+    
+    // Auto dismiss after 3 seconds
+    setTimeout(function() {
+        $('.alert').fadeOut();
+    }, 3000);
+}
+
+// Função para inicializar preview da tag
+function initializeTagPreview() {
+    const nomeInput = $('#id_nome');
+    const corInput = $('#id_cor');
+    
+    function updatePreview() {
+        const nome = nomeInput.val() || 'Nome da Tag';
+        const cor = corInput.val() || '#6B7280';
+        
+        $('.tag-preview-text').text(nome);
+        $('.tag-preview').css('background-color', cor);
+    }
+    
+    if (nomeInput.length && corInput.length) {
+        nomeInput.on('input', updatePreview);
+        corInput.on('input change', updatePreview);
+        updatePreview();
+    }
+}
+
+// Função global para editar contato
+function editContact(id) {
+    loadContactForm(id);
+    $('#contactModal').modal('show');
+}
+
+// Função global para editar tag
+function editTag(id) {
+    loadTagForm(id);
+    $('#tagModal').modal('show');
+}
+
+// Função global para confirmar exclusão
+function confirmDelete(type, id, name) {
+    $('#delete-content').html(`
+        <p>Tem certeza que deseja excluir ${type} <strong>"${name}"</strong>?</p>
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            Esta ação não pode ser desfeita.
+        </div>
+    `);
+    
+    $('#confirm-delete').off('click').on('click', function() {
+        deleteItem(type, id);
+    });
+    
+    $('#deleteModal').modal('show');
+}
+
+// Função para deletar item
+function deleteItem(type, id) {
+    const url = type === 'contato' ? 
+        `{% url "wpp:ajax_contact_delete" '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', id) : 
+        `{% url "wpp:ajax_tag_delete" '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', id);
+    
+    const submitBtn = $('#confirm-delete');
+    submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Excluindo...');
+    
+    $.post(url)
+        .done(function(response) {
+            if (response.success) {
+                $('#deleteModal').modal('hide');
+                showAlert('success', `${type.charAt(0).toUpperCase() + type.slice(1)} excluído com sucesso!`);
+                updateStats();
+                
+                if (type === 'contato' && $('#btn-contacts').hasClass('active')) {
+                    loadContacts();
+                } else if (type === 'tag' && $('#btn-tags').hasClass('active')) {
+                    loadTags();
+                }
+            } else {
+                showAlert('danger', `Erro ao excluir ${type}`);
+            }
+        })
+        .fail(function() {
+            showAlert('danger', `Erro ao excluir ${type}`);
+        })
+        .always(function() {
+            submitBtn.prop('disabled', false).html('<i class="fas fa-trash"></i> Confirmar Exclusão');
+        });
+}
+</script>
+{% endblock %}

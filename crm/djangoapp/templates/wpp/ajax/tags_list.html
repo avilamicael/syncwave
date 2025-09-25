@@ -1,0 +1,45 @@
+{% if tags %}
+    {% for tag in tags %}
+    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+        <div class="d-flex align-items-center">
+            <div class="rounded-circle mr-3" 
+                 style="width: 16px; height: 16px; background-color: {{ tag.cor }}; flex-shrink: 0;"></div>
+            <div>
+                <h6 class="mb-1 font-weight-bold">{{ tag.nome }}</h6>
+                <div class="small text-muted">
+                    <i class="fas fa-users mr-1"></i>
+                    {{ tag.total_contatos }} contato{{ tag.total_contatos|pluralize }}
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center">
+            <span class="badge mr-2" 
+                  style="background-color: {{ tag.cor }}; color: white; font-size: 0.75em;">
+                {{ tag.nome }}
+            </span>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-success btn-sm" onclick="editTag('{{ tag.pk }}')" title="Editar">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-outline-danger btn-sm" onclick="confirmDelete('tag', '{{ tag.pk }}', '{{ tag.nome|escapejs }}')" title="Excluir">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="text-center mt-3">
+        <a href="{% url 'wpp:tag_list' %}" class="btn btn-outline-success btn-sm">
+            Ver todas as tags ({{ total_tags }}) →
+        </a>
+    </div>
+{% else %}
+    <div class="text-center py-4">
+        <i class="fas fa-tags fa-3x text-gray-300 mb-3"></i>
+        <h6 class="text-gray-600">Nenhuma tag cadastrada</h6>
+        <p class="small text-gray-500">Crie sua primeira tag para organizar contatos</p>
+        <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#tagModal">
+            <i class="fas fa-plus"></i> Nova Tag
+        </button>
+    </div>
+{% endif %}

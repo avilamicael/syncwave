@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Exclusão - Tag{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3 bg-danger">
+                <h6 class="m-0 font-weight-bold text-white">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Confirmar Exclusão
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <p class="mb-3">
+                        Tem certeza que deseja excluir a tag <strong>"{{ object.nome }}"</strong>?
+                    </p>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rounded-circle mr-3" 
+                                     style="width: 16px; height: 16px; background-color: {{ object.cor }};"></div>
+                                <span class="badge" 
+                                      style="background-color: {{ object.cor }}; color: white;">
+                                    {{ object.nome }}
+                                </span>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                {{ object.contatos.count }} contato{{ object.contatos.count|pluralize }} será{{ object.contatos.count|pluralize:"á,ão" }} desvinculado{{ object.contatos.count|pluralize }} desta tag.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <div class="d-flex">
+                            <div class="mr-3">
+                                <i class="fas fa-exclamation-triangle text-warning"></i>
+                            </div>
+                            <div>
+                                <strong>Atenção:</strong> Esta ação não pode ser desfeita.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="post" class="d-flex justify-content-end">
+                    {% csrf_token %}
+                    <a href="{% url 'wpp:tag_list' %}" 
+                       class="btn btn-secondary mr-3">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Sim, Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

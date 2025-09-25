@@ -1,0 +1,88 @@
+{% csrf_token %}
+
+{% if tag %}
+    <input type="hidden" name="tag_id" value="{{ tag.pk }}">
+{% endif %}
+
+{% if form.non_field_errors %}
+    <div class="alert alert-danger">
+        <h6 class="font-weight-bold">Ocorreram erros:</h6>
+        <ul class="mb-0">
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+<div class="row">
+    <!-- Nome -->
+    <div class="col-12 mb-4">
+        <label for="{{ form.nome.id_for_label }}" class="form-label font-weight-bold">
+            {{ form.nome.label }}
+            <span class="text-danger">*</span>
+        </label>
+        {{ form.nome }}
+        {% if form.nome.help_text %}
+            <small class="form-text text-muted">{{ form.nome.help_text }}</small>
+        {% endif %}
+        {% if form.nome.errors %}
+            <div class="text-danger small mt-1">
+                {% for error in form.nome.errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Cor -->
+    <div class="col-12 mb-4">
+        <label for="{{ form.cor.id_for_label }}" class="form-label font-weight-bold">
+            {{ form.cor.label }}
+        </label>
+        <div class="d-flex align-items-center">
+            {{ form.cor }}
+            <div class="ml-3">
+                <span class="badge badge-secondary tag-preview" 
+                      style="background-color: {{ form.cor.value|default:'#6B7280' }}; color: white; font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+                    <i class="fas fa-tag mr-1"></i>
+                    <span class="tag-preview-text">{{ form.nome.value|default:'Nome da Tag' }}</span>
+                </span>
+            </div>
+        </div>
+        {% if form.cor.help_text %}
+            <small class="form-text text-muted">{{ form.cor.help_text }}</small>
+        {% endif %}
+        {% if form.cor.errors %}
+            <div class="text-danger small mt-1">
+                {% for error in form.cor.errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Preview -->
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body text-center py-3">
+                <small class="text-muted d-block mb-2">Preview da tag:</small>
+                <span class="badge tag-preview" 
+                      style="background-color: {{ form.cor.value|default:'#6B7280' }}; color: white; font-size: 1rem; padding: 0.5rem 1rem;">
+                    <i class="fas fa-tag mr-2"></i>
+                    <span class="tag-preview-text">{{ form.nome.value|default:'Nome da Tag' }}</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+input[type="color"] {
+    width: 50px !important;
+    height: 38px !important;
+    padding: 0 !important;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+</style>

@@ -2,6 +2,8 @@
 from functools import wraps
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import login_required
+from accounts.models import Company
+from django.http import Http404
 
 def company_required(view_func):
     """

@@ -1,0 +1,65 @@
+{% if contatos %}
+    {% for contato in contatos %}
+    <div class="d-flex align-items-center mb-3 border-bottom pb-3">
+        <div class="mr-3">
+            <div class="icon-circle bg-primary text-white">
+                {{ contato.nome|first|upper }}
+            </div>
+        </div>
+        <div class="flex-grow-1">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="font-weight-bold text-gray-900">{{ contato.nome }}</div>
+                    <div class="small text-muted">
+                        <i class="fab fa-whatsapp text-success mr-1"></i>{{ contato.telefone }}
+                        {% if contato.email %}
+                            <span class="mx-1">•</span>
+                            <i class="fas fa-envelope text-info mr-1"></i>{{ contato.email }}
+                        {% endif %}
+                    </div>
+                    {% if contato.tags.exists %}
+                        <div class="mt-1">
+                            {% for tag in contato.tags.all|slice:":3" %}
+                                <span class="badge badge-sm mr-1" 
+                                      style="background-color: {{ tag.cor }}; color: white; font-size: 0.7em;">
+                                    {{ tag.nome }}
+                                </span>
+                            {% endfor %}
+                            {% if contato.tags.count > 3 %}
+                                <span class="small text-muted">+{{ contato.tags.count|add:"-3" }}</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="text-right">
+                    {% if not contato.ativo %}
+                        <span class="badge badge-danger badge-sm">Inativo</span>
+                    {% endif %}
+                    <div class="btn-group btn-group-sm mt-1">
+                        <button class="btn btn-outline-primary btn-sm" onclick="editContact('{{ contato.pk }}')" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" onclick="confirmDelete('contato', '{{ contato.pk }}', '{{ contato.nome|escapejs }}')" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="text-center mt-3">
+        <a href="{% url 'wpp:contact_list' %}" class="btn btn-outline-primary btn-sm">
+            Ver todos os contatos ({{ total_contatos }}) →
+        </a>
+    </div>
+{% else %}
+    <div class="text-center py-4">
+        <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
+        <h6 class="text-gray-600">Nenhum contato cadastrado</h6>
+        <p class="small text-gray-500">Comece criando seu primeiro contato</p>
+        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#contactModal">
+            <i class="fas fa-plus"></i> Novo Contato
+        </button>
+    </div>
+{% endif %}
